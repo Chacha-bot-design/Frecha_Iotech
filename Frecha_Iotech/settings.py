@@ -154,8 +154,6 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     
-    # Update PostgreSQL SSL for production
-    DATABASES['default']['OPTIONS']['sslmode'] = 'require'
     
     # Static files serving with Whitenoise
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
