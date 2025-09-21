@@ -1,15 +1,11 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from . import views
-
-router = DefaultRouter()
-router.register(r'providers', views.ServiceProviderViewSet)
-router.register(r'bundles', views.DataBundleViewSet)
-router.register(r'routers', views.RouterProductViewSet)
-router.register(r'orders', views.OrderViewSet)
+from django.urls import path
+from . import views  # Import from the current app's views
 
 urlpatterns = [
-    path('', include(router.urls)),
-    # You can keep this if you want both options, or remove it
-    path('bundles-by-provider/<int:provider_id>/', views.bundles_by_provider, name='bundles-by-provider'),
+    path('', views.home_view, name='home'),
+    path('api/providers/', views.api_providers, name='api_providers'),
+    path('api/bundles/', views.api_bundles, name='api_bundles'),
+    path('api/bundles/<int:provider_id>/', views.api_bundles_by_provider, name='api_bundles_by_provider'),
+    path('api/routers/', views.api_routers, name='api_routers'),
+    path('api/orders/', views.api_create_order, name='api_create_order'),
 ]

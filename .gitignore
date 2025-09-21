@@ -52,3 +52,16 @@ env/
 .env
 .env.local
 .env.production
+
+
+
+
+*.sqlite3
+*.pyc
+__pycache__/
+.env
+.env.local
+.env.production
+staticfiles/
+.DS_Store
+*.log
