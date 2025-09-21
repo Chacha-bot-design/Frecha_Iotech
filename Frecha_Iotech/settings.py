@@ -69,6 +69,10 @@ WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
 import os
 import dj_database_url
 
+import os
+import dj_database_url
+
+# Database configuration
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
