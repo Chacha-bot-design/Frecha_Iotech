@@ -3,6 +3,7 @@ Django settings for Frecha_Iotech project.
 """
 
 import os
+import dj_database_url
 from pathlib import Path
 from decouple import config
 from dotenv import load_dotenv
@@ -64,23 +65,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
+# In settings.py, use this database configuration:
 
-# PostgreSQL Database Configuration (Only PostgreSQL)
-# TEMPORARY: Hardcode PostgreSQL settings to test connection
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'frecha_db'),
-        'USER': os.environ.get('DB_USER', 'frecha_user'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-        'OPTIONS': {# Add this OPTIONS section
-            'sslmode': 'require'
-        }
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=not DEBUG
+    )
 }
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
