@@ -65,14 +65,13 @@ WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
 
 # Database configuration for Render
 import dj_database_url
-
 DATABASES = {
     'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=not DEBUG
     )
 }
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
