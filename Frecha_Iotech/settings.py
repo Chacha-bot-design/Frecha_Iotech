@@ -1,7 +1,3 @@
-"""
-Django settings for Frecha_Iotech project.
-"""
-
 import os
 import dj_database_url
 from pathlib import Path
@@ -66,12 +62,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
 
-import os
-import dj_database_url
-
-import os
-import dj_database_url
-
 # Database configuration
 DATABASES = {
     'default': dj_database_url.config(
@@ -80,6 +70,7 @@ DATABASES = {
         ssl_require=not DEBUG
     )
 }
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -109,7 +100,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend/build/static'),
+    # os.path.join(BASE_DIR, 'frontend/build/static'),  # Comment out for now
 ]
 
 # Media files
@@ -130,7 +121,6 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
 
-
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -142,7 +132,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-         'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }
 
@@ -158,7 +148,6 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    
     
     # Static files serving with Whitenoise
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
