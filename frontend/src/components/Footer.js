@@ -24,8 +24,8 @@ const Footer = () => {
             <p>Stay connected with us on social media</p>
             <div className="social-links">
               <a href="https://www.facebook.com/frecha.iotech"><i className="bi bi-facebook"></i></a>
-              <a href="#"><i className="bi bi-twitter"></i></a>
-              <a href="#"><i className="bi bi-instagram"></i></a>
+              <a href="https://www.tiktok.com/@frecha_iotech"><i className="bi bi-tiktok"></i></a>
+              <a href="https://www.instagram.com/@fret_ech">"><i className="bi bi-instagram"></i></a>
               <a href="https://wa.me/0757315593"><i className="bi bi-whatsapp"></i></a>
             </div>
           </div>
