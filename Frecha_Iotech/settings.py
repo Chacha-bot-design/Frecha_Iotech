@@ -1,3 +1,10 @@
+I found the issue! You have **duplicate `STATICFILES_DIRS` definitions** and the second one is **empty**. The static files configuration is conflicting.
+
+## 🔧 **Fix Your `settings.py`:**
+
+### **Remove the duplicate and empty STATICFILES_DIRS:**
+
+```python
 import os
 import dj_database_url
 from pathlib import Path
@@ -7,15 +14,6 @@ load_dotenv()  # Load environment variables from .env file
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# Add React build to static files
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'build/static'),
-]
-
-
-
 
 # Security settings
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-fallback-key-for-dev-only')
@@ -56,9 +54,7 @@ ROOT_URLCONF = 'Frecha_Iotech.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        
-          'DIRS': [os.path.join(BASE_DIR, 'build')],  # Point to React build
-       
+        'DIRS': [os.path.join(BASE_DIR, 'build')],  # Point to React build
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,9 +69,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
 
-
-# Database configuration for Render
-import dj_database_url
+# Database configuration
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
@@ -83,6 +77,7 @@ DATABASES = {
         ssl_require=not DEBUG
     )
 }
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -108,11 +103,11 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# Static files (CSS, JavaScript, Images) - SINGLE DEFINITION
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
-    # os.path.join(BASE_DIR, 'frontend/build/static'), 
+    os.path.join(BASE_DIR, 'build/static'),  # Only this one definition
 ]
 
 # Media files
