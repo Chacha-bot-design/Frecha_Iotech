@@ -8,6 +8,15 @@ load_dotenv()  # Load environment variables from .env file
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+# Add React build to static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'build/static'),
+]
+
+
+
+
 # Security settings
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-fallback-key-for-dev-only')
 DEBUG = config('DEBUG', default=False, cast=bool)
@@ -47,7 +56,9 @@ ROOT_URLCONF = 'Frecha_Iotech.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        
+          'DIRS': [os.path.join(BASE_DIR, 'build')],  # Point to React build
+       
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
