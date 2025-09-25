@@ -1,13 +1,19 @@
-#!/usr/bin/env bash
-# Exit on error
+#
+#!/bin/bash
 set -o errexit
 
-# Install dependencies
+# Build React frontend if source exists
+if [ -d "frontend" ]; then
+    echo "Building React frontend..."
+    cd frontend
+    npm install
+    npm run build
+    cd ..
+    # Move build to root
+    mv frontend/build/ build/
+fi
+
+# Django setup
 pip install -r requirements.txt
-
-# Collect static files
 python manage.py collectstatic --no-input
-
-# Apply database migrations
 python manage.py migrate
-
