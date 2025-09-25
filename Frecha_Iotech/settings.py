@@ -1,10 +1,4 @@
-I found the issue! You have **duplicate `STATICFILES_DIRS` definitions** and the second one is **empty**. The static files configuration is conflicting.
 
-## 🔧 **Fix Your `settings.py`:**
-
-### **Remove the duplicate and empty STATICFILES_DIRS:**
-
-```python
 import os
 import dj_database_url
 from pathlib import Path
