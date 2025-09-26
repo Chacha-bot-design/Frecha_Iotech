@@ -25,6 +25,7 @@ database_dump.sql
 *.dbpassword
 
 # React/node (if you have frontend)
+
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -52,6 +53,11 @@ env/
 .env
 .env.local
 .env.production
+# Node (React frontend, if any)
+node_modules/
+build/
+frontend/node_modules/
+frontend/build/
 
 
 

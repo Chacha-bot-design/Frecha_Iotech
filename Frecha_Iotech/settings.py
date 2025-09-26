@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     
     # Local apps
     'store',
+    'api',
+    
 ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
@@ -47,13 +49,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'Frecha_Iotech.urls'
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS':[ os.path.join(BASE_DIR, 'frontend/build'),  # React build location
-                os.path.join(BASE_DIR, 'build'),  # Fallback location
+        'DIRS': [
+            os.path.join(BASE_DIR, 'frontend', 'build'),  # React build path
         ],
-            
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
