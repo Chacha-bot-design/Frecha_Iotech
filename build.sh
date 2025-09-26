@@ -1,19 +1,19 @@
-#
 #!/bin/bash
-set -o errexit
+# Build the React app
+echo "Building React app..."
+cd frontend
+npm install
+npm run build
+cd ..
 
-# Build React frontend if source exists
-if [ -d "frontend" ]; then
-    echo "Building React frontend..."
-    cd frontend
-    npm install
-    npm run build
-    cd ..
-    # Move build to root
-    mv frontend/build/ build/
-fi
+# Copy React build to Django static files
+echo "Copying React build to Django static..."
+mkdir -p staticfiles
+cp -r frontend/build/* staticfiles/
 
-# Django setup
-pip install -r requirements.txt
-python manage.py collectstatic --no-input
+# Collect Django static files
+echo "Collecting Django static files..."
+python manage.py collectstatic --noinput
+
+# Run migrations
 python manage.py migrate
