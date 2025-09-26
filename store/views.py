@@ -3,6 +3,13 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import ServiceProvider, DataBundle, RouterProduct
 from .serializers import ServiceProviderSerializer, DataBundleSerializer, RouterProductSerializer, OrderSerializer
+from rest_framework import viewsets
+from .models import ServiceProvider
+from .serializers import ServiceProviderSerializer
+
+class ServiceProviderViewSet(viewsets.ModelViewSet):
+    queryset = ServiceProvider.objects.filter(is_active=True)  # Only active providers
+    serializer_class = ServiceProviderSerializer
 
 
 @api_view(['GET'])

@@ -342,6 +342,66 @@ nav ul li a:hover {
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+/* Female Humanoid Robot */
+.female-robot .robot-head {
+    width: 110px; /* Slightly smaller, more feminine */
+    height: 140px;
+    background: linear-gradient(45deg, #f8f0e3, #e8d8c8); /* Lighter skin tone */
+    border-radius: 55px 55px 45px 45px; /* Softer curves */
+}
+
+.female-robot .robot-face {
+    width: 70px;
+    height: 45px;
+    top: 35px;
+    left: 20px;
+}
+
+.female-robot .eye {
+    width: 22px; /* Larger, more expressive eyes */
+    height: 10px;
+}
+
+.female-robot .robot-body {
+    width: 120px; /* More slender torso */
+    height: 180px;
+    background: linear-gradient(45deg, #e8d8c8, #d8c8b8); /* Lighter tone */
+    border-radius: 25px; /* Curvier shape */
+}
+
+.female-robot .shoulders {
+    width: 140px; /* Narrower shoulders */
+}
+
+.female-robot .arm {
+    width: 20px; /* More slender arms */
+    height: 110px;
+}
+
+.female-robot .leg {
+    width: 25px; /* More slender legs */
+    height: 130px;
+}
+
+/* Female-specific features */
+.hair {
+    position: absolute;
+    top: -10px;
+    width: 100px;
+    height: 30px;
+    background: linear-gradient(45deg, #8B4513, #A0522D); /* Brown hair */
+    border-radius: 50px 50px 0 0;
+    z-index: -1;
+}
+
+.curves {
+    position: absolute;
+    width: 130px;
+    height: 200px;
+    background: radial-gradient(ellipse at center, rgba(232,216,200,0.8) 0%, transparent 70%);
+    border-radius: 40%;
+    top: 30px;
+}
 
 .btn {
   display: inline-block;

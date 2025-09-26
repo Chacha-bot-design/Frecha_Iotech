@@ -1,5 +1,19 @@
 
 from django.db import models
+
+
+class ServiceProvider(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Service Provider"
+        verbose_name_plural = "Service Providers"
 class Order(models.Model):
     ORDER_STATUS = (
         ('pending', 'Pending'),
