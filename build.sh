@@ -8,11 +8,12 @@ npm install
 npm run build
 cd ..
 
-# Copy React build to the root so Django can find it
-cp -r frontend/build/* ./
+# Copy React build to where Django expects it
+echo "Copying React build files..."
+cp -r frontend/build/ ./build/
 
-# Collect static files to STATIC_ROOT
-python manage.py collectstatic --noinput --clear
+# Collect static files
+python manage.py collectstatic --noinput
 
 # Run migrations
 python manage.py migrate
