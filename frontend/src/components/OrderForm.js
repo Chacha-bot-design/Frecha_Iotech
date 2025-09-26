@@ -16,6 +16,11 @@ const OrderForm = ({ providers, bundles, routers }) => {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Safe array fallbacks to prevent errors
+  const safeProviders = Array.isArray(providers) ? providers : [];
+  const safeRouters = Array.isArray(routers) ? routers : [];
+  const safeBundles = Array.isArray(bundles) ? bundles : [];
+
   const handleProviderChange = async (e) => {
     const providerId = e.target.value;
     setSelectedProvider(providerId);
@@ -23,9 +28,11 @@ const OrderForm = ({ providers, bundles, routers }) => {
     if (providerId) {
       try {
         const response = await getBundlesByProvider(providerId);
-        setFilteredBundles(response.data);
+        // Safe array check for API response
+        setFilteredBundles(Array.isArray(response?.data) ? response.data : []);
       } catch (error) {
         console.error('Error fetching bundles:', error);
+        setFilteredBundles([]);
       }
     } else {
       setFilteredBundles([]);
@@ -135,7 +142,8 @@ const OrderForm = ({ providers, bundles, routers }) => {
                     onChange={handleProviderChange}
                   >
                     <option value="">Select Provider</option>
-                    {providers.map(provider => (
+                    {/* Safe mapping with fallback array */}
+                    {safeProviders.map(provider => (
                       <option key={provider.id} value={provider.id}>
                         {provider.name}
                       </option>
@@ -143,7 +151,8 @@ const OrderForm = ({ providers, bundles, routers }) => {
                   </select>
                 </div>
                 
-                {filteredBundles.length > 0 && (
+                {/* Safe filtered bundles check */}
+                {Array.isArray(filteredBundles) && filteredBundles.length > 0 && (
                   <div className="form-group">
                     <label htmlFor="product_id">Select Bundle</label>
                     <select
@@ -176,7 +185,8 @@ const OrderForm = ({ providers, bundles, routers }) => {
                   required
                 >
                   <option value="">Select Router</option>
-                  {routers.map(router => (
+                  {/* Safe mapping with fallback array */}
+                  {safeRouters.map(router => (
                     <option key={router.id} value={router.id}>
                       {router.name} - TZS {router.price}
                     </option>

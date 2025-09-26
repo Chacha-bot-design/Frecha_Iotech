@@ -27,13 +27,18 @@ function App() {
           getRouters()
         ]);
         
-        setProviders(providersResponse.data);
-        setBundles(bundlesResponse.data);
-        setRouters(routersResponse.data);
+        // Ensure we always set arrays, even if API returns undefined
+        setProviders(Array.isArray(providersResponse?.data) ? providersResponse.data : []);
+        setBundles(Array.isArray(bundlesResponse?.data) ? bundlesResponse.data : []);
+        setRouters(Array.isArray(routersResponse?.data) ? routersResponse.data : []);
         setLoading(false);
       } catch (err) {
         setError(err.message);
         setLoading(false);
+        // Set empty arrays on error too
+        setProviders([]);
+        setBundles([]);
+        setRouters([]);
       }
     };
 
@@ -53,7 +58,11 @@ function App() {
               <Hero />
               <Services providers={providers} />
               <Products routers={routers} />
-              <OrderForm providers={providers} bundles={bundles} routers={routers} />
+              <OrderForm 
+                providers={providers} 
+                bundles={bundles} 
+                routers={routers} 
+              />
             </>
           } />
         </Routes>
