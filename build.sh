@@ -1,4 +1,8 @@
 #!/bin/bash
+# Install Python dependencies first
+echo "Installing Python dependencies..."
+pip install -r requirements.txt
+
 # Build the React app
 echo "Building React app..."
 cd frontend
