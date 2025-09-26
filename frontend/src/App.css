@@ -1,87 +1,9 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-:root {
-  --primary: #2c3e50;
-  --secondary: #3498db;
-  --accent: #e74c3c;
-  --light: #ecf0f1;
-  --dark: #2c3e50;
-  --success: #27ae60;
-}
-
-body {
-  background-color: #f8f9fa;
-  color: #333;
-  line-height: 1.6;
-}
-
-.container {
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Header Styles */
-header {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: white;
-  padding: 1rem 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 1.8rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-}
-
-.logo i {
-  margin-right: 10px;
-  color: var(--accent);
-}
-
-nav ul {
-  display: flex;
-  list-style: none;
-}
-
-nav ul li {
-  margin-left: 1.5rem;
-}
-
-nav ul li a {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s;
-}
-
-nav ul li a:hover {
-  color: var(--accent);
-}
-  
-
-/* Thinking Humanoid Robots Hero */
+/* Compact Thinking Robots Hero */
 .hero {
   background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
   color: white;
-  padding: 4rem 1rem;
-  min-height: 100vh;
+  padding: 2rem 1rem;
+  min-height: 60vh; /* Reduced from 100vh */
   display: flex;
   align-items: center;
   position: relative;
@@ -92,556 +14,100 @@ nav ul li a:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 2rem;
-  margin-bottom: 3rem;
+  gap: 1rem;
+  margin-bottom: 2rem; /* Reduced */
   position: relative;
 }
 
 .thinking-robot {
-  width: 300px;
-  height: 400px;
+  width: 200px; /* Smaller */
+  height: 280px; /* Much smaller */
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.robot-left {
-  animation: floatLeft 4s ease-in-out infinite;
-}
-
-.robot-right {
-  animation: floatRight 4s ease-in-out infinite;
-}
-
-/* Robot Head */
+/* Smaller robot parts */
 .robot-head {
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(45deg, #555, #777);
-  border-radius: 50%;
-  position: relative;
-  border: 3px solid #00d4ff;
-  margin-bottom: 20px;
-  overflow: hidden;
+  width: 70px; /* Smaller */
+  height: 70px; /* Smaller */
+  margin-bottom: 15px;
 }
 
-/* Thinking Face */
-.robot-face {
-  position: absolute;
-  width: 60px;
-  height: 40px;
-  background: #333;
-  border-radius: 20px;
-  top: 30px;
-  left: 20px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-}
-
-.eye {
-  width: 15px;
-  height: 15px;
-  background: #00ff88;
-  border-radius: 50%;
-  animation: thinkBlink 3s infinite;
-}
-
-.thinking-bubble {
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 2rem;
-  animation: thinkPulse 2s infinite;
-}
-
-/* Robot Body - Human Structure */
 .robot-body {
-  width: 120px;
-  height: 150px;
-  background: linear-gradient(45deg, #666, #888);
-  border-radius: 20px;
-  position: relative;
-  border: 2px solid #00d4ff;
-}
-
-/* Thinking Pose Arms */
-.robot-arms {
-  position: absolute;
-  top: 30px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
+  width: 90px; /* Smaller */
+  height: 120px; /* Smaller */
 }
 
 .arm {
-  width: 8px;
-  height: 80px;
-  background: #777;
-  border-radius: 4px;
-  position: relative;
-}
-
-/* Left Robot - Hand on Chin Thinking Pose */
-.robot-left .arm-left {
-  transform: rotate(-45deg);
-  animation: thinkChin 3s ease-in-out infinite;
-}
-
-.robot-left .arm-right {
-  transform: rotate(25deg);
-}
-
-.robot-left .hand {
-  position: absolute;
-  bottom: -10px;
-  width: 20px;
-  height: 15px;
-  background: #888;
-  border-radius: 5px;
-  animation: tapChin 3s ease-in-out infinite;
-}
-
-/* Right Robot - Hand on Head Thinking Pose */
-.robot-right .arm-left {
-  transform: rotate(-25deg);
-}
-
-.robot-right .arm-right {
-  transform: rotate(45deg);
-  animation: thinkHead 3s ease-in-out infinite;
-}
-
-.robot-right .hand {
-  position: absolute;
-  bottom: -10px;
-  width: 20px;
-  height: 15px;
-  background: #888;
-  border-radius: 5px;
-  animation: tapHead 3s ease-in-out infinite;
-}
-
-/* Robot Legs */
-.robot-legs {
-  position: absolute;
-  bottom: 10px;
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
+  height: 60px; /* Shorter arms */
 }
 
 .leg {
-  width: 10px;
-  height: 70px;
-  background: #555;
-  border-radius: 5px;
-}
-
-/* Animations */
-@keyframes floatLeft {
-  0%, 100% { transform: translateY(0px) translateX(0px); }
-  50% { transform: translateY(-15px) translateX(-5px); }
-}
-
-@keyframes floatRight {
-  0%, 100% { transform: translateY(0px) translateX(0px); }
-  50% { transform: translateY(-15px) translateX(5px); }
-}
-
-@keyframes thinkBlink {
-  0%, 90%, 100% { opacity: 1; transform: scale(1); }
-  95% { opacity: 0.3; transform: scale(0.8); }
-}
-
-@keyframes thinkPulse {
-  0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
-  50% { transform: translateX(-50%) scale(1.2); opacity: 0.7; }
-}
-
-@keyframes thinkChin {
-  0%, 100% { transform: rotate(-45deg); }
-  50% { transform: rotate(-40deg); }
-}
-
-@keyframes tapChin {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(2px); }
-}
-
-@keyframes thinkHead {
-  0%, 100% { transform: rotate(45deg); }
-  50% { transform: rotate(50deg); }
-}
-
-@keyframes tapHead {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(2px); }
+  height: 50px; /* Shorter legs */
 }
 
 .hero-content {
   text-align: center;
   position: relative;
   z-index: 2;
+  flex: 1;
+  padding: 0 1rem;
 }
 
 .hero h1 {
-  font-size: 3.2rem;
-  margin-bottom: 1.5rem;
+  font-size: 2.2rem; /* Smaller heading */
+  margin-bottom: 1rem;
   background: linear-gradient(45deg, #00d4ff, #00ff88);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .hero p {
-  font-size: 1.3rem;
-  max-width: 800px;
-  margin: 0 auto 3rem;
+  font-size: 1.1rem; /* Smaller text */
+  max-width: 600px;
+  margin: 0 auto 2rem; /* Less margin */
   opacity: 0.9;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .btn {
-  display: inline-block;
-  background: linear-gradient(45deg, #00d4ff, #00ff88);
-  color: #000;
-  padding: 15px 35px;
-  border-radius: 50px;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
-  border: none;
-  cursor: pointer;
-}
-
-.btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 30px rgba(0, 212, 255, 0.4);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .thinking-robots-container {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .thinking-robot {
-    width: 250px;
-    height: 350px;
-  }
-  
-  .hero h1 {
-    font-size: 2.5rem;
-  }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-}
-.btn {
-  display: inline-block;
-  background: var(--accent);
-  color: white;
-  padding: 0.8rem 1.5rem;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: background 0.3s;
-  border: none;
-  cursor: pointer;
-}
-
-.btn:hover {
-  background: #c0392b;
-}
-
-.btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-/* Services Section */
-.section-title {
-  text-align: center;
-  margin: 3rem 0 2rem;
-  color: var(--dark);
-  position: relative;
-}
-
-.section-title:after {
-  content: '';
-  display: block;
-  width: 80px;
-  height: 4px;
-  background: var(--secondary);
-  margin: 10px auto;
-}
-
-.services {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin: 2rem 0;
-}
-
-.service-card {
-  background: white;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
-}
-
-.service-card:hover {
-  transform: translateY(-10px);
-}
-
-.service-img {
-  height: 200px;
-  background-color: #3498db;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 3rem;
-}
-
-.service-content {
-  padding: 1.5rem;
-}
-
-.service-content h3 {
-  color: var(--primary);
-  margin-bottom: 0.5rem;
-}
-
-.service-content p {
-  margin-bottom: 1rem;
-  color: #666;
-}
-
-.price {
-  font-size: 1.5rem;
-  color: var(--accent);
-  font-weight: 700;
-  margin: 1rem 0;
-}
-
-/* Products Section */
-.products {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin: 2rem 0;
-}
-
-.product-card {
-  background: white;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
-}
-
-.product-card:hover {
-  transform: translateY(-5px);
-}
-
-.product-img {
-  height: 200px;
-  background-color: #e74c3c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 3rem;
-}
-
-.product-content {
-  padding: 1.5rem;
-}
-
-.product-content h3 {
-  color: var(--primary);
-  margin-bottom: 0.5rem;
-}
-
-/* Order Form */
-.order-section {
-  background: var(--light);
-  padding: 3rem 0;
-  margin: 3rem 0;
-}
-
-.order-form {
-  background: white;
-  border-radius: 10px;
-  padding: 2rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 12px 25px; /* Smaller button */
   font-size: 1rem;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: var(--secondary);
-}
-
-.message {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 5px;
-  text-align: center;
-}
-
-.message.success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.message.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
-/* Footer */
-footer {
-  background: var(--dark);
-  color: white;
-  padding: 3rem 0 1rem;
-}
-
-.footer-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-}
-
-.footer-section h3 {
-  margin-bottom: 1rem;
-  position: relative;
-  padding-bottom: 0.5rem;
-}
-
-.footer-section h3:after {
-  content: '';
-  display: block;
-  width: 50px;
-  height: 2px;
-  background: var(--accent);
-  position: absolute;
-  bottom: 0;
-  left: 0;
-}
-
-.contact-info {
-  list-style: none;
-}
-
-.contact-info li {
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.contact-info i {
-  margin-right: 10px;
-  color: var(--accent);
-}
-
-.social-links {
-  display: flex;
-  margin-top: 1rem;
-}
-
-.social-links a {
-  display: inline-block;
-  margin-right: 15px;
-  color: white;
-  font-size: 1.5rem;
-  transition: color 0.3s;
-}
-
-.social-links a:hover {
-  color: var(--accent);
-}
-
-.copyright {
-  text-align: center;
-  margin-top: 3rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Loading and Error States */
-.loading, .error {
-  text-align: center;
-  padding: 2rem;
-  font-size: 1.2rem;
-}
-
-.loading {
-  color: var(--secondary);
-}
-
-.error {
-  color: var(--accent);
-}
-
-/* Responsive Design */
+/* Make robots less prominent on mobile */
 @media (max-width: 768px) {
-  .header-content {
+  .hero {
+    min-height: 50vh;
+    padding: 1.5rem 1rem;
+  }
+  
+  .thinking-robots-container {
     flex-direction: column;
-    text-align: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
   }
   
-  nav ul {
-    margin-top: 1rem;
-    justify-content: center;
-  }
-  
-  nav ul li {
-    margin: 0 0.5rem;
+  .thinking-robot {
+    width: 150px;
+    height: 200px;
   }
   
   .hero h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
   
   .hero p {
     font-size: 1rem;
   }
   
-  .footer-content {
-    grid-template-columns: 1fr;
+  /* Hide robots on very small screens if needed */
+  @media (max-width: 480px) {
+    .thinking-robot {
+      width: 120px;
+      height: 160px;
+    }
   }
 }

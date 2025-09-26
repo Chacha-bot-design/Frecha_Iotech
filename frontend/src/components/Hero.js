@@ -4,9 +4,9 @@ const Hero = () => {
   return (
     <section className="hero" id="home">
       <div className="container">
-        {/* Two Thinking Humanoid Robots */}
+        {/* Compact Thinking Robots */}
         <div className="thinking-robots-container">
-          {/* Left Robot - Hand on Chin Thinking Pose */}
+          {/* Left Robot */}
           <div className="thinking-robot robot-left">
             <div className="thinking-bubble">💭</div>
             <div className="robot-head">
@@ -29,16 +29,16 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Center Content */}
+          {/* Center Content - More Compact */}
           <div className="hero-content">
-            <h1>AI Robots Thinking About Your Connectivity</h1>
-            <p>Our advanced humanoid AI is constantly optimizing the best telecom solutions for your Vodacom, Airtel, Yas, and Halotel needs.</p>
-            <a href="#order" className="btn">Get AI-Optimized Service</a>
+            <h1>AI-Optimized Telecom</h1>
+            <p>Smart solutions for Vodacom, Airtel, Yas, and Halotel</p>
+            <a href="#order" className="btn">Get Connected</a>
           </div>
 
-          {/* Right Robot - Hand on Head Thinking Pose */}
+          {/* Right Robot */}
           <div className="thinking-robot robot-right">
-            <div className="thinking-bubble">🤔</div>
+            <div className="thinking-bubble">🤖</div>
             <div className="robot-head">
               <div className="robot-face">
                 <div className="eye"></div>
