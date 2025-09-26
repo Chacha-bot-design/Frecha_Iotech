@@ -1,6 +1,7 @@
 
 import os
 import dj_database_url
+from django.http import JsonResponse 
 from pathlib import Path
 from decouple import config
 from dotenv import load_dotenv
@@ -30,6 +31,7 @@ INSTALLED_APPS = [
     # Local apps
     'store',
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -48,7 +50,10 @@ ROOT_URLCONF = 'Frecha_Iotech.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'build')],  # Point to React build
+        'DIRS':[ os.path.join(BASE_DIR, 'frontend/build'),  # React build location
+                os.path.join(BASE_DIR, 'build'),  # Fallback location
+        ],
+            
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -101,9 +106,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'build/static'),  # Only this one definition
+    os.path.join(BASE_DIR, 'frontend/build/static'),
+    os.path.join(BASE_DIR, 'build/static'),  # Fallback
 ]
-
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
