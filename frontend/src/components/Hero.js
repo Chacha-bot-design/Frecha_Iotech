@@ -24,7 +24,7 @@ const Hero = () => {
         </div>
         
         <h1>Premium Telecom Services</h1>
-        <p>Get the best Vodacom, Airtel, Yas, and Halotel bundles along with high-quality WiFi routers for seamless connectivity.</p>.</p>
+        <p>Get the best Vodacom, Airtel, Yas, and Halotel bundles along with high-quality WiFi routers for seamless connectivity.</p>
         <a href="#order" className="btn">Connect with Future</a>
       </div>
     </section>
