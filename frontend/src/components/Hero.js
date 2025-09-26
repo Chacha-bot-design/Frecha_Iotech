@@ -4,28 +4,61 @@ const Hero = () => {
   return (
     <section className="hero" id="home">
       <div className="container">
-        {/* Real Humanoid Robot Images */}
-        <div className="humanoid-robots">
-          <img 
-            src="https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-            alt="Tesla Optimus Robot" 
-            className="humanoid-image"
-          />
-          <img 
-            src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-            alt="Advanced Humanoid" 
-            className="humanoid-image"
-          />
-          <img 
-            src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-            alt="Human-like Android" 
-            className="humanoid-image"
-          />
+        {/* Two Thinking Humanoid Robots */}
+        <div className="thinking-robots-container">
+          {/* Left Robot - Hand on Chin Thinking Pose */}
+          <div className="thinking-robot robot-left">
+            <div className="thinking-bubble">💭</div>
+            <div className="robot-head">
+              <div className="robot-face">
+                <div className="eye"></div>
+                <div className="eye"></div>
+              </div>
+            </div>
+            <div className="robot-body">
+              <div className="robot-arms">
+                <div className="arm arm-left">
+                  <div className="hand"></div>
+                </div>
+                <div className="arm arm-right"></div>
+              </div>
+              <div className="robot-legs">
+                <div className="leg"></div>
+                <div className="leg"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Center Content */}
+          <div className="hero-content">
+            <h1>AI Robots Thinking About Your Connectivity</h1>
+            <p>Our advanced humanoid AI is constantly optimizing the best telecom solutions for your Vodacom, Airtel, Yas, and Halotel needs.</p>
+            <a href="#order" className="btn">Get AI-Optimized Service</a>
+          </div>
+
+          {/* Right Robot - Hand on Head Thinking Pose */}
+          <div className="thinking-robot robot-right">
+            <div className="thinking-bubble">🤔</div>
+            <div className="robot-head">
+              <div className="robot-face">
+                <div className="eye"></div>
+                <div className="eye"></div>
+              </div>
+            </div>
+            <div className="robot-body">
+              <div className="robot-arms">
+                <div className="arm arm-left"></div>
+                <div className="arm arm-right">
+                  <div className="hand"></div>
+                </div>
+              </div>
+              <div className="robot-legs">
+                <div className="leg"></div>
+                <div className="leg"></div>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        <h1>Premium Telecom Services</h1>
-        <p>Get the best Vodacom, Airtel, Yas, and Halotel bundles along with high-quality WiFi routers for seamless connectivity.</p>
-        <a href="#order" className="btn">Connect with Future</a>
       </div>
     </section>
   );

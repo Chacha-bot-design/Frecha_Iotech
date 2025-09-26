@@ -76,53 +76,267 @@ nav ul li a:hover {
 }
   
 
-/* Tesla Bot Inspired Hero */
+/* Thinking Humanoid Robots Hero */
 .hero {
-  background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #333333 100%);
+  background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
   color: white;
-  text-align: center;
-  padding: 4rem 1rem;
-  min-height: 90vh;
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.hero {
-  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-  color: white;
-  text-align: center;
   padding: 4rem 1rem;
   min-height: 100vh;
   display: flex;
   align-items: center;
+  position: relative;
+  overflow: hidden;
 }
 
-.humanoid-robots {
+.thinking-robots-container {
   display: flex;
-  justify-content: center;
-  gap: 3rem;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
   margin-bottom: 3rem;
-  flex-wrap: wrap;
+  position: relative;
 }
 
-.humanoid-image {
-  width: 250px;
-  height: 350px;
-  border-radius: 20px;
-  object-fit: cover;
+.thinking-robot {
+  width: 300px;
+  height: 400px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.robot-left {
+  animation: floatLeft 4s ease-in-out infinite;
+}
+
+.robot-right {
+  animation: floatRight 4s ease-in-out infinite;
+}
+
+/* Robot Head */
+.robot-head {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(45deg, #555, #777);
+  border-radius: 50%;
+  position: relative;
   border: 3px solid #00d4ff;
-  box-shadow: 0 15px 35px rgba(0, 212, 255, 0.3);
-  transition: transform 0.3s ease;
+  margin-bottom: 20px;
+  overflow: hidden;
 }
 
-.humanoid-image:hover {
-  transform: scale(1.05) rotate(2deg);
+/* Thinking Face */
+.robot-face {
+  position: absolute;
+  width: 60px;
+  height: 40px;
+  background: #333;
+  border-radius: 20px;
+  top: 30px;
+  left: 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.eye {
+  width: 15px;
+  height: 15px;
+  background: #00ff88;
+  border-radius: 50%;
+  animation: thinkBlink 3s infinite;
+}
+
+.thinking-bubble {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  animation: thinkPulse 2s infinite;
+}
+
+/* Robot Body - Human Structure */
+.robot-body {
+  width: 120px;
+  height: 150px;
+  background: linear-gradient(45deg, #666, #888);
+  border-radius: 20px;
+  position: relative;
+  border: 2px solid #00d4ff;
+}
+
+/* Thinking Pose Arms */
+.robot-arms {
+  position: absolute;
+  top: 30px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.arm {
+  width: 8px;
+  height: 80px;
+  background: #777;
+  border-radius: 4px;
+  position: relative;
+}
+
+/* Left Robot - Hand on Chin Thinking Pose */
+.robot-left .arm-left {
+  transform: rotate(-45deg);
+  animation: thinkChin 3s ease-in-out infinite;
+}
+
+.robot-left .arm-right {
+  transform: rotate(25deg);
+}
+
+.robot-left .hand {
+  position: absolute;
+  bottom: -10px;
+  width: 20px;
+  height: 15px;
+  background: #888;
+  border-radius: 5px;
+  animation: tapChin 3s ease-in-out infinite;
+}
+
+/* Right Robot - Hand on Head Thinking Pose */
+.robot-right .arm-left {
+  transform: rotate(-25deg);
+}
+
+.robot-right .arm-right {
+  transform: rotate(45deg);
+  animation: thinkHead 3s ease-in-out infinite;
+}
+
+.robot-right .hand {
+  position: absolute;
+  bottom: -10px;
+  width: 20px;
+  height: 15px;
+  background: #888;
+  border-radius: 5px;
+  animation: tapHead 3s ease-in-out infinite;
+}
+
+/* Robot Legs */
+.robot-legs {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+
+.leg {
+  width: 10px;
+  height: 70px;
+  background: #555;
+  border-radius: 5px;
+}
+
+/* Animations */
+@keyframes floatLeft {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50% { transform: translateY(-15px) translateX(-5px); }
+}
+
+@keyframes floatRight {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50% { transform: translateY(-15px) translateX(5px); }
+}
+
+@keyframes thinkBlink {
+  0%, 90%, 100% { opacity: 1; transform: scale(1); }
+  95% { opacity: 0.3; transform: scale(0.8); }
+}
+
+@keyframes thinkPulse {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  50% { transform: translateX(-50%) scale(1.2); opacity: 0.7; }
+}
+
+@keyframes thinkChin {
+  0%, 100% { transform: rotate(-45deg); }
+  50% { transform: rotate(-40deg); }
+}
+
+@keyframes tapChin {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(2px); }
+}
+
+@keyframes thinkHead {
+  0%, 100% { transform: rotate(45deg); }
+  50% { transform: rotate(50deg); }
+}
+
+@keyframes tapHead {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(2px); }
+}
+
+.hero-content {
+  text-align: center;
+  position: relative;
+  z-index: 2;
 }
 
 .hero h1 {
   font-size: 3.2rem;
   margin-bottom: 1.5rem;
+  background: linear-gradient(45deg, #00d4ff, #00ff88);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+  font-size: 1.3rem;
+  max-width: 800px;
+  margin: 0 auto 3rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.btn {
+  display: inline-block;
+  background: linear-gradient(45deg, #00d4ff, #00ff88);
+  color: #000;
+  padding: 15px 35px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(0, 212, 255, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .thinking-robots-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .thinking-robot {
+    width: 250px;
+    height: 350px;
+  }
+  
+  .hero h1 {
+    font-size: 2.5rem;
+  }
 }
 
 @keyframes float {
