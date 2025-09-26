@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = fetch('https://frecha-iotech.onrender.com/api/providers/')
+// Remove the fetch() call - just use the direct URL
+const API_BASE_URL = 'https://frecha-iotech.onrender.com';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
