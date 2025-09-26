@@ -19,7 +19,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
   // Safe array fallbacks to prevent errors
   const safeProviders = Array.isArray(providers) ? providers : [];
   const safeRouters = Array.isArray(routers) ? routers : [];
-  const safeBundles = Array.isArray(bundles) ? bundles : [];
+ 
 
   const handleProviderChange = async (e) => {
     const providerId = e.target.value;

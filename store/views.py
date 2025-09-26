@@ -8,7 +8,7 @@ from .models import ServiceProvider
 from .serializers import ServiceProviderSerializer
 
 class ServiceProviderViewSet(viewsets.ModelViewSet):
-    queryset = ServiceProvider.objects.filter(is_active=True)  # Only active providers
+ queryset = ServiceProvider.objects.all() 
     serializer_class = ServiceProviderSerializer
 
 

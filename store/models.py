@@ -80,7 +80,7 @@ class ServiceProvider(models.Model):
     name = models.CharField(max_length=100)
     logo = models.CharField(max_length=100, help_text="Font Awesome icon class")
     color = models.CharField(max_length=7, default="#3498db")
-    
+    is_active = models.BooleanField(default=True)
     def __str__(self):
         return self.name
 
