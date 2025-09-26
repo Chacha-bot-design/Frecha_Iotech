@@ -79,7 +79,7 @@ nav ul li a:hover {
   background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #252525 100%);
   color: white;
   padding: 3rem 1rem;
-  min-height: 100vh;
+  min-height: 60vh;
   display: flex;
   align-items: center;
   position: relative;
@@ -104,6 +104,23 @@ nav ul li a:hover {
 
 .robot-figure {
   width: 100%;
+
+
+/* Force mobile scrolling */
+@media (max-width: 768px) {
+    body, html, #root {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        position: relative !important;
+    }
+    
+    .hero {
+        min-height: 100vh !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+}
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
