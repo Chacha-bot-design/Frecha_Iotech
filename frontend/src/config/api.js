@@ -1,6 +1,9 @@
 // src/config/api.js
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'https://frecha-iotech.onrender.com' 
-  : 'http://localhost:8000';
+ 
+fetch('/api/providers/')
+fetch('/api/bundles/') 
+fetch('/api/orders/')
 
 export default API_BASE_URL;
