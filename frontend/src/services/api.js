@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';  // Django backend
+const API_BASE_URL = fetch('https://frecha-iotech.onrender.com/api/providers/')
 
 const api = axios.create({
   baseURL: API_BASE_URL,
