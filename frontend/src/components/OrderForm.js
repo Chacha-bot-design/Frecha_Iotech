@@ -46,52 +46,50 @@ const OrderForm = ({ providers, bundles, routers }) => {
       [name]: value
     });
   };
-{
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  try {
-    await createOrder(formData);
-    setMessage('Order placed successfully!');
+    try {
+      await createOrder(formData);
+      setMessage('Order placed successfully!');
 
-    // Reset form
-    setFormData({
-      customer_name: '',
-      email: '',
-      phone: '',
-      service_type: '',
-      product_id: '',
-      package_details: '',
-      additional_notes: ''
-    });
-    setSelectedProvider('');
-    setFilteredBundles([]);
-  } catch (error) {
-    console.error('Order error:', error);
+      // Reset form
+      setFormData({
+        customer_name: '',
+        email: '',
+        phone: '',
+        service_type: '',
+        product_id: '',
+        package_details: '',
+        additional_notes: ''
+      });
+      setSelectedProvider('');
+      setFilteredBundles([]);
+    } catch (error) {
+      console.error('Order error:', error);
 
-    let errorMessage = 'Error placing order. Please try again.';
+      let errorMessage = 'Error placing order. Please try again.';
 
-    if (error?.response?.data) {
-      const data = error.response.data;
+      if (error?.response?.data) {
+        const data = error.response.data;
 
-      if (typeof data === 'string') {
-        errorMessage = data;
-      } else if (typeof data === 'object') {
-        errorMessage = Object.values(data)
-          .flat()
-          .join(' | ');
+        if (typeof data === 'string') {
+          errorMessage = data;
+        } else if (typeof data === 'object') {
+          errorMessage = Object.values(data)
+            .flat()
+            .join(' | ');
+        }
+      } else if (error?.message) {
+        errorMessage = error.message;
       }
-    } else if (error?.message) {
-      errorMessage = error.message;
+
+      setMessage(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setMessage(errorMessage);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
   };
 
   return (
@@ -161,7 +159,6 @@ const OrderForm = ({ providers, bundles, routers }) => {
                     onChange={handleProviderChange}
                   >
                     <option value="">Select Provider</option>
-                    {/* Safe mapping with fallback array */}
                     {safeProviders.map(provider => (
                       <option key={provider.id} value={provider.id}>
                         {provider.name}
@@ -170,7 +167,6 @@ const OrderForm = ({ providers, bundles, routers }) => {
                   </select>
                 </div>
                 
-                {/* Safe filtered bundles check */}
                 {Array.isArray(filteredBundles) && filteredBundles.length > 0 && (
                   <div className="form-group">
                     <label htmlFor="product_id">Select Bundle</label>
@@ -204,7 +200,6 @@ const OrderForm = ({ providers, bundles, routers }) => {
                   required
                 >
                   <option value="">Select Router</option>
-                  {/* Safe mapping with fallback array */}
                   {safeRouters.map(router => (
                     <option key={router.id} value={router.id}>
                       {router.name} - TZS {router.price}
@@ -250,7 +245,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
           </form>
         </div>
       </div>
-        </section>
+    </section>
   );
 };
 
