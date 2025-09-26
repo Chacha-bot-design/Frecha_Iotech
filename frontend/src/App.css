@@ -82,85 +82,60 @@ nav ul li a:hover {
   position: relative;
 }
 
-.robot-head {
-  width: 100px;
-  height: 100px;
-  background: #3498db;
-  border-radius: 20px;
-  margin: 0 auto;
+/* Hero Section with Robot Images */
+.hero {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: white;
+  text-align: center;
+  padding: 3rem 1rem;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
   position: relative;
-  animation: bounce 2s ease-in-out infinite;
+  overflow: hidden;
 }
 
-.robot-face {
-  position: absolute;
-  width: 60px;
-  height: 40px;
-  background: #2c3e50;
-  border-radius: 15px;
-  top: 30px;
-  left: 20px;
-}
-
-.robot-eyes {
-  position: absolute;
-  top: 10px;
-  width: 100%;
+.robot-container {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 3rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
-.eye {
-  width: 15px;
-  height: 15px;
-  background: #00d4ff;
-  border-radius: 50%;
-  animation: blink 3s infinite;
+.robot-image {
+  width: 200px;
+  height: 200px;
+  border-radius: 20px;
+  object-fit: cover;
+  border: 3px solid #00d4ff;
+  box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+  transition: transform 0.3s ease;
 }
 
-.thinking-dots {
-  position: absolute;
-  top: -30px;
-  right: -40px;
-  display: flex;
-  gap: 5px;
+.robot-image:hover {
+  transform: scale(1.05);
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  background: #e74c3c;
-  border-radius: 50%;
-  animation: think 1.5s infinite;
+.hero-content {
+  position: relative;
+  z-index: 2;
 }
 
-.dot:nth-child(2) { animation-delay: 0.2s; }
-.dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(45deg, #00d4ff, #0099cc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-@keyframes blink {
-  0%, 90%, 100% { opacity: 1; }
-  95% { opacity: 0; }
+.hero p {
+  font-size: 1.2rem;
+  max-width: 700px;
+  margin: 0 auto 2rem;
+  opacity: 0.9;
 }
-
-@keyframes think {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.2); opacity: 1; }
-}
-
-.robot-body {
-  width: 80px;
-  height: 60px;
-  background: #2980b9;
-  border-radius: 10px;
-  margin: -10px auto 0;
-}
-  
-
 
 .btn {
   display: inline-block;
