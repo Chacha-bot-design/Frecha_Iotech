@@ -8,8 +8,8 @@ from .models import ServiceProvider
 from .serializers import ServiceProviderSerializer
 
 class ServiceProviderViewSet(viewsets.ModelViewSet):
- queryset = ServiceProvider.objects.all() 
-    serializer_class = ServiceProviderSerializer
+queryset = ServiceProvider.objects.all() 
+serializer_class = ServiceProviderSerializer
 
 
 @api_view(['GET'])
