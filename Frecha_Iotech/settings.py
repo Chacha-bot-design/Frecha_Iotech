@@ -1,11 +1,10 @@
-
 import os
 import dj_database_url
-from django.http import JsonResponse 
 from pathlib import Path
 from decouple import config
 from dotenv import load_dotenv
-load_dotenv()  # Load environment variables from .env file
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,6 +12,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security settings
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-fallback-key-for-dev-only')
 DEBUG = config('DEBUG', default=False, cast=bool)
+
+# Allowed Hosts
 allowed_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,frecha-iotech.onrender.com')
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts.split(',')]
 
@@ -31,15 +32,12 @@ INSTALLED_APPS = [
     
     # Local apps
     'store',
-    'api',
-    
 ]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -54,8 +52,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'build'),  # React build path - CORRECTED
-            os.path.join(BASE_DIR, 'templates'),  # Additional template directory
+            os.path.join(BASE_DIR, 'build'),
+            os.path.join(BASE_DIR, 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -71,14 +69,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
 
-# Database configuration
+# PostgreSQL Database Configuration
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME', default='frecha_iotech'),
+        'USER': config('DB_USER', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
+    }
+}
+
+# Fallback to DATABASE_URL environment variable (for Render.com)
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(
         conn_max_age=600,
         ssl_require=not DEBUG
     )
-}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -105,31 +113,26 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images) - SINGLE DEFINITION
-# Static files (CSS, JavaScript, Images)
+# Static files configuration
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Remove the duplicate frontend path, keep only the correct one
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'build/static'),  # Correct React build path
-]
-
 # Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')# Default primary key field type
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-##########
+
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "https://frecha-iotech.onrender.com",  # ADD YOUR PRODUCTION DOMAIN
-    "http://frecha-iotech.onrender.com",   # ADD HTTP VERSION TOO
+    "https://frecha-iotech.onrender.com",
+    "http://frecha-iotech.onrender.com",
 ]
-
 
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
@@ -139,13 +142,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }
 
@@ -162,8 +160,18 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     
-    # Static files serving with Whitenoise
+    # WhiteNoise configuration for production
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    # Development settings
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'build/static'),
+    ]
+
+# WhiteNoise additional configuration
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_ALLOW_ALL_ORIGINS = True
 
 # Logging configuration
 LOGGING = {
@@ -201,5 +209,4 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
-    },
-}
+   
