@@ -1,75 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { getProviders, getBundles, getRouters } from './services/api';
-import Header from './components/Header';
-import Hero from './components/Hero';
-import Services from './components/Services';
-import Products from './components/Products';
-import OrderForm from './components/OrderForm';
-import Footer from './components/Footer';
-import './App.css';
-import "bootstrap-icons/font/bootstrap-icons.css";
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      console.log('Starting API calls...');
+      
+      const [providersResponse, bundlesResponse, routersResponse] = await Promise.all([
+        getProviders(),
+        getBundles(),
+        getRouters()
+      ]);
+      
+      console.log('Raw API Responses:');
+      console.log('Providers response:', providersResponse);
+      console.log('Bundles response:', bundlesResponse);
+      console.log('Routers response:', routersResponse);
+      
+      // Handle different response structures
+      const getDataFromResponse = (response) => {
+        // If response.data exists and is an array, use it
+        if (response.data && Array.isArray(response.data)) {
+          return response.data;
+        }
+        // If response itself is an array, use it directly
+        if (Array.isArray(response)) {
+          return response;
+        }
+        // Default to empty array
+        return [];
+      };
+      
+      const providersData = getDataFromResponse(providersResponse);
+      const bundlesData = getDataFromResponse(bundlesResponse);
+      const routersData = getDataFromResponse(routersResponse);
+      
+      console.log('Extracted Data:');
+      console.log('Providers:', providersData);
+      console.log('Bundles:', bundlesData);
+      console.log('Routers:', routersData);
+      
+      setProviders(providersData);
+      setBundles(bundlesData);
+      setRouters(routersData);
+      setLoading(false);
+      
+    } catch (err) {
+      console.error('Error in fetchData:', err);
+      setError('Failed to load data: ' + err.message);
+      setLoading(false);
+      setProviders([]);
+      setBundles([]);
+      setRouters([]);
+    }
+  };
 
-function App() {
-  const [providers, setProviders] = useState([]);
-  const [bundles, setBundles] = useState([]);
-  const [routers, setRouters] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [providersResponse, bundlesResponse, routersResponse] = await Promise.all([
-          getProviders(),
-          getBundles(),
-          getRouters()
-        ]);
-        
-        // Ensure we always set arrays, even if API returns undefined
-        setProviders(Array.isArray(providersResponse?.data) ? providersResponse.data : []);
-        setBundles(Array.isArray(bundlesResponse?.data) ? bundlesResponse.data : []);
-        setRouters(Array.isArray(routersResponse?.data) ? routersResponse.data : []);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-        // Set empty arrays on error too
-        setProviders([]);
-        setBundles([]);
-        setRouters([]);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">Error: {error}</div>;
-
-  return (
-    <Router>
-      <div className="App">
-        <Header />
-        <Routes>
-          <Route path="/" element={
-            <>
-              <Hero />
-              <Services providers={providers} />
-              <Products routers={routers} />
-              <OrderForm 
-                providers={providers} 
-                bundles={bundles} 
-                routers={routers} 
-              />
-            </>
-          } />
-        </Routes>
-        <Footer />
-      </div>
-    </Router>
-  );
-}
-
-export default App;
+  fetchData();
+}, []);

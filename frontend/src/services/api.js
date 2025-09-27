@@ -1,12 +1,26 @@
 import axios from 'axios';
 
-// Use empty baseURL for same-domain requests
 const api = axios.create({
-  baseURL: '', // This will make requests to the same domain as your React app
+  baseURL: '',
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Add response interceptor to handle different response structures
+api.interceptors.response.use(
+  (response) => {
+    // If the response data is already an array, return it directly
+    if (Array.isArray(response.data)) {
+      return { data: response.data };
+    }
+    return response;
+  },
+  (error) => {
+    console.error('API Error:', error);
+    return Promise.reject(error);
+  }
+);
 
 export const getProviders = () => api.get('/api/providers/');
 export const getBundles = () => api.get('/api/bundles/');
