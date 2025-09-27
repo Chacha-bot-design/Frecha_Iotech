@@ -13,7 +13,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security settings
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-fallback-key-for-dev-only')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+allowed_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,frecha-iotech.onrender.com')
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts.split(',')]
 
 # Application definition
 INSTALLED_APPS = [
@@ -49,12 +50,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'Frecha_Iotech.urls'
 
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'frontend', 'build'),  # React build path
+            os.path.join(BASE_DIR, 'build'),  # React build path - CORRECTED
+            os.path.join(BASE_DIR, 'templates'),  # Additional template directory
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -105,26 +106,30 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images) - SINGLE DEFINITION
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Remove the duplicate frontend path, keep only the correct one
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend/build/static'),
-    os.path.join(BASE_DIR, 'build/static'),  # Fallback
+    os.path.join(BASE_DIR, 'build/static'),  # Correct React build path
 ]
+
 # Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Default primary key field type
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+##########
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://frecha-iotech.onrender.com",  # ADD YOUR PRODUCTION DOMAIN
+    "http://frecha-iotech.onrender.com",   # ADD HTTP VERSION TOO
 ]
+
 
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
