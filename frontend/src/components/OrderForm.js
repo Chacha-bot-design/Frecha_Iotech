@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createOrder, getBundlesByProvider } from '../services/api';
 
 const OrderForm = ({ providers, bundles, routers }) => {
@@ -19,20 +19,46 @@ const OrderForm = ({ providers, bundles, routers }) => {
   // Safe array fallbacks to prevent errors
   const safeProviders = Array.isArray(providers) ? providers : [];
   const safeRouters = Array.isArray(routers) ? routers : [];
- 
+
+  // Debug: Log when component receives props
+  useEffect(() => {
+    console.log('=== ORDERFORM DEBUG ===');
+    console.log('Providers received:', providers);
+    console.log('Safe providers:', safeProviders);
+    console.log('Safe providers length:', safeProviders.length);
+    console.log('Selected provider:', selectedProvider);
+    console.log('Filtered bundles:', filteredBundles);
+    console.log('Form data:', formData);
+    console.log('======================');
+  }, [providers, selectedProvider, filteredBundles, formData]);
 
   const handleProviderChange = async (e) => {
     const providerId = e.target.value;
+    console.log('Provider changed to:', providerId);
+    
     setSelectedProvider(providerId);
+    
+    // Reset product_id when provider changes
+    setFormData(prev => ({
+      ...prev,
+      product_id: ''
+    }));
     
     if (providerId) {
       try {
+        console.log('Fetching bundles for provider:', providerId);
         const response = await getBundlesByProvider(providerId);
+        console.log('Bundles API response:', response);
+        
         // Safe array check for API response
-        setFilteredBundles(Array.isArray(response?.data) ? response.data : []);
+        const bundlesData = Array.isArray(response?.data) ? response.data : [];
+        console.log('Bundles data received:', bundlesData);
+        setFilteredBundles(bundlesData);
       } catch (error) {
         console.error('Error fetching bundles:', error);
+        console.error('Error details:', error.response);
         setFilteredBundles([]);
+        setMessage('Error loading bundles. Please try again.');
       }
     } else {
       setFilteredBundles([]);
@@ -41,6 +67,8 @@ const OrderForm = ({ providers, bundles, routers }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log('Input changed:', name, value);
+    
     setFormData({
       ...formData,
       [name]: value
@@ -50,6 +78,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    console.log('Submitting form:', formData);
 
     try {
       await createOrder(formData);
@@ -74,6 +103,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
 
       if (error?.response?.data) {
         const data = error.response.data;
+        console.error('Error response data:', data);
 
         if (typeof data === 'string') {
           errorMessage = data;
@@ -96,6 +126,22 @@ const OrderForm = ({ providers, bundles, routers }) => {
     <section className="order-section" id="order">
       <div className="container">
         <h2 className="section-title">Place Your Order</h2>
+        
+        {/* Debug info - remove after testing */}
+        <div style={{ 
+          background: '#f0f0f0', 
+          padding: '10px', 
+          margin: '10px 0', 
+          borderRadius: '5px',
+          fontSize: '14px'
+        }}>
+          <strong>Debug Info:</strong><br/>
+          Providers: {safeProviders.length} available<br/>
+          Selected Provider: {selectedProvider}<br/>
+          Bundles: {filteredBundles.length} available<br/>
+          Service Type: {formData.service_type}
+        </div>
+        
         <div className="order-form">
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -157,6 +203,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
                     id="provider"
                     value={selectedProvider}
                     onChange={handleProviderChange}
+                    required
                   >
                     <option value="">Select Provider</option>
                     {safeProviders.map(provider => (
@@ -167,7 +214,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
                   </select>
                 </div>
                 
-                {Array.isArray(filteredBundles) && filteredBundles.length > 0 && (
+                {selectedProvider && (
                   <div className="form-group">
                     <label htmlFor="product_id">Select Bundle</label>
                     <select
@@ -184,6 +231,9 @@ const OrderForm = ({ providers, bundles, routers }) => {
                         </option>
                       ))}
                     </select>
+                    {filteredBundles.length === 0 && selectedProvider && (
+                      <p style={{color: '#666', fontSize: '14px'}}>No bundles available for this provider</p>
+                    )}
                   </div>
                 )}
               </>
