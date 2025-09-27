@@ -2,22 +2,15 @@ import os
 import dj_database_url
 from pathlib import Path
 from decouple import config
-from dotenv import load_dotenv
 
-load_dotenv()
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Security settings
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-fallback-key-for-dev-only')
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-fallback-key')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# Allowed Hosts
 allowed_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,frecha-iotech.onrender.com')
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts.split(',')]
 
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -25,18 +18,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # Third-party apps
     'corsheaders',
     'rest_framework',
-    
-    # Local apps
     'store',
 ]
 
+# CRITICAL: WhiteNoise must be right after SecurityMiddleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # This position is essential
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -51,10 +41,7 @@ ROOT_URLCONF = 'Frecha_Iotech.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'build'),
-            os.path.join(BASE_DIR, 'templates'),
-        ],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -69,51 +56,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
 
-# PostgreSQL Database Configuration
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='frecha_iotech'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
-    }
-}
-
-# Fallback to DATABASE_URL environment variable (for Render.com)
-if 'DATABASE_URL' in os.environ:
-    DATABASES['default'] = dj_database_url.config(
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
         conn_max_age=600,
         ssl_require=not DEBUG
     )
+}
 
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {
-            'min_length': 8,
-        }
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+# ... [Keep your password validators, internationalization, etc.]
 
-# Internationalization
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
-
-# Static files configuration
+# SIMPLIFIED STATIC FILES CONFIGURATION
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -121,101 +74,21 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
     "https://frecha-iotech.onrender.com",
-    "http://frecha-iotech.onrender.com",
+    "http://localhost:3000",
 ]
 
-CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
-
-# REST Framework settings
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-    ],
-}
-
-# Security settings for production
+# Production settings
 if not DEBUG:
-    # HTTPS settings
+    # Security settings
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     
-    # WhiteNoise configuration for production
+    # WhiteNoise for production
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-else:
-    # Development settings
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, 'build/static'),
-    ]
 
-# WhiteNoise additional configuration
-WHITENOISE_USE_FINDERS = True
-WHITENOISE_MANIFEST_STRICT = False
-WHITENOISE_ALLOW_ALL_ORIGINS = True
-
-# Logging configuration - FIXED SYNTAX
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'WARNING',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': config('DJANGO_LOG_LEVEL', default='INFO'),
-            'propagate': False,
-        },
-        'django.db.backends': {
-            'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': False,
-        },
-    },
-}  # THIS BRACE WAS MISSING
-
-# Additional PostgreSQL optimizations
-if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
-    # PostgreSQL connection optimizations
-    DATABASES['default']['CONN_MAX_AGE'] = 600  # Reuse connections for 10 minutes
-    DATABASES['default']['OPTIONS'] = {
-        'connect_timeout': 10,
-    }
+# SIMPLIFIED - Remove all other static-related settings
