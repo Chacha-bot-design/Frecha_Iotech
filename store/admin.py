@@ -11,7 +11,7 @@ class ServiceProviderAdmin(admin.ModelAdmin):
 # Data Bundle Admin
 @admin.register(DataBundle)
 class DataBundleAdmin(admin.ModelAdmin):
-    list_display = ['name', 'provider', 'price', 'validity_days']
+    list_display = ['name', 'provider', 'price', 'validity']
     list_filter = ['provider']
     search_fields = ['name', 'provider__name']
     list_editable = ['price']
