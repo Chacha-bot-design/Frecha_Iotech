@@ -7,8 +7,6 @@ class ServiceProviderSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DataBundleSerializer(serializers.ModelSerializer):
-    provider_name = serializers.CharField(source='provider.name', read_only=True)
-    
     class Meta:
         model = DataBundle
         fields = '__all__'
