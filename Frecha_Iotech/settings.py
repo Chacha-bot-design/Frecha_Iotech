@@ -173,7 +173,7 @@ WHITENOISE_USE_FINDERS = True
 WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_ALLOW_ALL_ORIGINS = True
 
-# Logging configuration
+# Logging configuration - FIXED SYNTAX
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -209,4 +209,13 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
-   
+    },
+}  # THIS BRACE WAS MISSING
+
+# Additional PostgreSQL optimizations
+if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+    # PostgreSQL connection optimizations
+    DATABASES['default']['CONN_MAX_AGE'] = 600  # Reuse connections for 10 minutes
+    DATABASES['default']['OPTIONS'] = {
+        'connect_timeout': 10,
+    }
