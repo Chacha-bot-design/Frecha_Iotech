@@ -91,4 +91,7 @@ if not DEBUG:
     # WhiteNoise for production
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# SIMPLIFIED - Remove all other static-related settings
+# Make sure WhiteNoise is properly configured
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_ROOT = os.path.join(BASE_DIR, 'staticfiles')
