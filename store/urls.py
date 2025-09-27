@@ -5,10 +5,10 @@ from . import views
 router = DefaultRouter()
 router.register(r'providers', views.ServiceProviderViewSet)
 router.register(r'bundles', views.DataBundleViewSet)
-router.register(r'routers', views.RouterViewSet)
+router.register(r'routers', views.RouterProductViewSet)  # Fixed this line
 router.register(r'orders', views.OrderViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
-    path('api/bundles/<int:provider_id>/', views.bundles_by_provider, name='bundles-by-provider'),
+    path('', include(router.urls)),
+    path('bundles/provider/<int:provider_id>/', views.bundles_by_provider),
 ]
