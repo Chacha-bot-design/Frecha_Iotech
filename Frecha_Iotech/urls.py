@@ -6,12 +6,15 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('store.urls')),  # Make sure this points to your store app
-    
-    # Serve React app for all other routes - MUST BE LAST
+    path('api/', include('store.urls')),
+]
+
+# Serve React app
+urlpatterns += [
     re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
 ]
 
-# Serve media files in development
+# Serve static files in development
 if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
