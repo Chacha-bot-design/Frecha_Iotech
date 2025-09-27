@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Remove the fetch() call - just use the direct URL
 const API_BASE_URL = 'https://frecha-iotech.onrender.com';
 
 const api = axios.create({
@@ -10,6 +9,7 @@ const api = axios.create({
   },
 });
 
+// Correct endpoints based on your API response
 export const getProviders = () => api.get('/api/providers/');
 export const getBundles = () => api.get('/api/bundles/');
 export const getBundlesByProvider = (providerId) => api.get(`/api/bundles/${providerId}/`);
