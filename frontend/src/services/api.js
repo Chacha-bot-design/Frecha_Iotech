@@ -7,17 +7,26 @@ const api = axios.create({
   },
 });
 
-// Add response interceptor to handle different response structures
+// Add request interceptor to log outgoing requests
+api.interceptors.request.use(
+  (config) => {
+    console.log(`🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error('❌ Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to log responses
 api.interceptors.response.use(
   (response) => {
-    // If the response data is already an array, return it directly
-    if (Array.isArray(response.data)) {
-      return { data: response.data };
-    }
+    console.log(`✅ API Success: ${response.config.url}`, response.status);
     return response;
   },
   (error) => {
-    console.error('API Error:', error);
+    console.error(`❌ API Error: ${error.config?.url}`, error.response?.status, error.response?.data);
     return Promise.reject(error);
   }
 );
