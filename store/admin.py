@@ -14,7 +14,7 @@ class DataBundleAdmin(admin.ModelAdmin):
     list_display = ['name', 'provider', 'price', 'validity_days']
     list_filter = ['provider']
     search_fields = ['name', 'provider__name']
-    list_editable = ['price', 'validity_days']
+    list_editable = ['price']
 
 # Router Product Admin
 @admin.register(RouterProduct)
