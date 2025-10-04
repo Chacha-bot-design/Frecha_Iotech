@@ -1,28 +1,19 @@
-from rest_framework import viewsets, status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.http import JsonResponse
-from .models import ServiceProvider, DataBundle, RouterProduct, Order
-from .serializers import ServiceProviderSerializer, DataBundleSerializer, RouterProductSerializer, OrderSerializer
+from rest_framework import viewsets
+from .models import Provider, Bundle, Router, Order
+from .serializers import ProviderSerializer, BundleSerializer, RouterSerializer, OrderSerializer
 
-class ServiceProviderViewSet(viewsets.ModelViewSet):
-    queryset = ServiceProvider.objects.all()
-    serializer_class = ServiceProviderSerializer
+class ProviderViewSet(viewsets.ModelViewSet):
+    queryset = Provider.objects.all()
+    serializer_class = ProviderSerializer
 
-class DataBundleViewSet(viewsets.ModelViewSet):
-    queryset = DataBundle.objects.all()
-    serializer_class = DataBundleSerializer
+class BundleViewSet(viewsets.ModelViewSet):
+    queryset = Bundle.objects.all()
+    serializer_class = BundleSerializer
 
-class RouterProductViewSet(viewsets.ModelViewSet):
-    queryset = RouterProduct.objects.all()
-    serializer_class = RouterProductSerializer
+class RouterViewSet(viewsets.ModelViewSet):
+    queryset = Router.objects.all()
+    serializer_class = RouterSerializer
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-
-@api_view(['GET'])
-def bundles_by_provider(request, provider_id):
-    bundles = DataBundle.objects.filter(provider_id=provider_id)
-    serializer = DataBundleSerializer(bundles, many=True)
-    return Response(serializer.data)
