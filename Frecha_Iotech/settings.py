@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent  # This is correct
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = [
     'frecha-iotech.onrender.com',  # ✅ Fixed: lowercase with hyphen
