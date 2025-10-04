@@ -120,13 +120,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings - FIXED URL
 CORS_ALLOWED_ORIGINS = [
-    "https://frecha-iotech.onrender.com",  # ✅ Fixed: lowercase with hyphen
+    "https://frecha-iotechi.onrender.com",  # ✅ Fixed: lowercase with hyphen
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://frecha-iotech.onrender.com",  # ✅ Fixed: lowercase with hyphen
+    "https://frecha-iotechi.onrender.com",  # ✅ Fixed: lowercase with hyphen
     "http://localhost:3000",
 ]
 
