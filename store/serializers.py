@@ -1,19 +1,19 @@
 from rest_framework import serializers
-from .models import Provider, Bundle, Router, Order
+from .models import ServiceProvider, DataBundle, RouterProduct, Order
 
-class ProviderSerializer(serializers.ModelSerializer):
+class ServiceProviderSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Provider
+        model = ServiceProvider
         fields = '__all__'
 
-class BundleSerializer(serializers.ModelSerializer):
+class DataBundleSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Bundle
+        model = DataBundle
         fields = '__all__'
 
-class RouterSerializer(serializers.ModelSerializer):
+class RouterProductSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Router
+        model = RouterProduct
         fields = '__all__'
 
 class OrderSerializer(serializers.ModelSerializer):

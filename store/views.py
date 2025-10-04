@@ -1,18 +1,18 @@
 from rest_framework import viewsets
-from .models import Provider, Bundle, Router, Order
-from .serializers import ProviderSerializer, BundleSerializer, RouterSerializer, OrderSerializer
+from .models import ServiceProvider, DataBundle, RouterProduct, Order
+from .serializers import ServiceProviderSerializer, DataBundleSerializer, RouterProductSerializer, OrderSerializer
 
 class ProviderViewSet(viewsets.ModelViewSet):
-    queryset = Provider.objects.all()
-    serializer_class = ProviderSerializer
+    queryset = ServiceProvider.objects.all()
+    serializer_class = ServiceProviderSerializer
 
 class BundleViewSet(viewsets.ModelViewSet):
-    queryset = Bundle.objects.all()
-    serializer_class = BundleSerializer
+    queryset = DataBundle.objects.all()
+    serializer_class = DataBundleSerializer
 
 class RouterViewSet(viewsets.ModelViewSet):
-    queryset = Router.objects.all()
-    serializer_class = RouterSerializer
+    queryset = RouterProduct.objects.all()
+    serializer_class = RouterProductSerializer
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
