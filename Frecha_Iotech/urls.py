@@ -12,38 +12,38 @@ router.register(r'bundles', views.BundleViewSet)
 router.register(r'routers', views.RouterViewSet)
 router.register(r'orders', views.OrderViewSet)
 
-# Block function for public
 def block_everything(request, *args, **kwargs):
     return JsonResponse({
         "error": "Access denied",
         "message": "This API is private and only accessible through the official frontend"
     }, status=403)
 
-# Secure admin access with secret key
-def secure_admin(request, admin_path=''):
-    """Admin access protected by secret key"""
+def secure_admin(request):
+    """Admin access protected by secret key - SAFE VERSION"""
     secret_key = request.GET.get('key')
     
-    # Your super secret key - no one can guess this!
-    if secret_key == os.environ.get('ADMIN_SECRET_KEY', 'frecha-admin-2024-secure-key-12345'):
-        # Pass the request to the actual Django admin
+    # SAFE: No hardcoded key - only from environment
+    expected_key = os.environ.get('ADMIN_SECRET_KEY')
+    
+    # If no key is set in environment, block access
+    if not expected_key:
+        return JsonResponse({
+            "error": "Admin access disabled",
+            "message": "Admin secret key not configured"
+        }, status=403)
+    
+    if secret_key == expected_key:
         return admin.site.urls[0].callback(request)
     
-    # Wrong or missing key - show access denied
     return JsonResponse({
         "error": "Admin access denied",
         "message": "Invalid or missing secret key"
     }, status=403)
 
 urlpatterns = [
-    # SECURE ADMIN ACCESS (your private entry)
-    path('manage/', secure_admin),  # Your secret admin URL
-    
-    # PROTECTED API (only your frontend can access)
+    path('manage/', secure_admin),
     path('api/', include(router.urls)),
-    
-    # BLOCK EVERYTHING ELSE
-    path('admin/', block_everything),  # Block normal admin URL
-    path('', block_everything),  # Block root
-    path('<path:unknown_path>', block_everything),  # Block everything else
+    path('admin/', block_everything),
+    path('', block_everything),
+    path('<path:unknown_path>', block_everything),
 ]
