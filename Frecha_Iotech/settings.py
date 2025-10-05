@@ -150,10 +150,9 @@ if DEBUG:
 CORS_ALLOW_CREDENTIALS = False  # More secure for your setup
 
 # BETTER: Only apply permissions to API views
+# REST Framework configuration - FIXED VERSION
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',  # API stays secure
-    ],
+   
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
@@ -166,7 +165,9 @@ REST_FRAMEWORK = {
     ]
 }
 
-# This ensures permissions only apply to API views, not regular Django views# Add browsable API in development only
+# Add browsable API in development only
+if DEBUG:
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')# This ensures permissions only apply to API views, not regular Django views# Add browsable API in development only
 if DEBUG:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')
 
