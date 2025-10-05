@@ -12,10 +12,13 @@ router.register(r'routers', views.RouterViewSet)
 router.register(r'orders', views.OrderViewSet)
 
 def block_everything(request, *args, **kwargs):
+    print(f"DEBUG: Blocking access to: {request.path}")
     return JsonResponse({"error": "Access denied"}, status=403)
 
 def admin_login_page(request):
     """Show a secure login form"""
+    print(f"DEBUG: admin_login_page accessed via {request.method}")
+    
     if request.method == 'POST':
         secret_key = request.POST.get('admin_key')
         expected_key = os.environ.get('ADMIN_SECRET_KEY', 'Imthewinner01-2024')
@@ -35,23 +38,19 @@ def admin_login_page(request):
                 <head>
                     <title>Admin Login - Frecha Iotech</title>
                     <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <style>
-                        body { font-family: Arial, sans-serif; max-width: 400px; margin: 100px auto; padding: 20px; }
-                        .login-form { background: #f5f5f5; padding: 30px; border-radius: 8px; }
-                        input[type="password"] { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; }
-                        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-                        .error { color: red; margin-top: 10px; }
-                    </style>
                 </head>
                 <body>
-                    <div class="login-form">
-                        <h3>🔒 Admin Login</h3>
-                        <form method="post">
-                            <input type="password" name="admin_key" placeholder="Enter admin key" 
-                                   autocomplete="new-password" required>
-                            <button type="submit">Login</button>
-                            <div class="error">Invalid admin key</div>
-                        </form>
+                    <div style="max-width: 400px; margin: 100px auto; padding: 20px;">
+                        <div style="background: #f5f5f5; padding: 30px; border-radius: 8px;">
+                            <h3>🔒 Admin Login</h3>
+                            <form method="post">
+                                <input type="password" name="admin_key" placeholder="Enter admin key" 
+                                       style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px;"
+                                       autocomplete="new-password" required>
+                                <button type="submit" style="width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Login</button>
+                                <div style="color: red; margin-top: 10px;">Invalid admin key</div>
+                            </form>
+                        </div>
                     </div>
                 </body>
                 </html>
@@ -64,21 +63,18 @@ def admin_login_page(request):
         <head>
             <title>Admin Login - Frecha Iotech</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-                body { font-family: Arial, sans-serif; max-width: 400px; margin: 100px auto; padding: 20px; }
-                .login-form { background: #f5f5f5; padding: 30px; border-radius: 8px; }
-                input[type="password"] { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; }
-                button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-            </style>
         </head>
         <body>
-            <div class="login-form">
-                <h3>🔒 Admin Login</h3>
-                <form method="post">
-                    <input type="password" name="admin_key" placeholder="Enter admin key" 
-                           autocomplete="new-password" required>
-                    <button type="submit">Login</button>
-                </form>
+            <div style="max-width: 400px; margin: 100px auto; padding: 20px;">
+                <div style="background: #f5f5f5; padding: 30px; border-radius: 8px;">
+                    <h3>🔒 Admin Login</h3>
+                    <form method="post">
+                        <input type="password" name="admin_key" placeholder="Enter admin key" 
+                               style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px;"
+                               autocomplete="new-password" required>
+                        <button type="submit" style="width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Login</button>
+                    </form>
+                </div>
             </div>
         </body>
         </html>
@@ -86,6 +82,8 @@ def admin_login_page(request):
 
 def secure_admin(request):
     """Check session with proper error handling"""
+    print(f"DEBUG: secure_admin accessed, session: {request.session.get('admin_authenticated')}")
+    
     if request.session.get('admin_authenticated'):
         try:
             print("DEBUG: Session authenticated, loading admin...")
@@ -112,11 +110,13 @@ def secure_admin(request):
         </html>
     ''', status=403)
 
+# CRITICAL: Order matters! Specific paths first, catch-all last
 urlpatterns = [
-    path('admin-login/', admin_login_page),  # Professional login page
-    path('manage/', secure_admin),           # Protected admin
+    path('admin-login/', admin_login_page),  # Must come before catch-all
+    path('manage/', secure_admin),           # Must come before catch-all  
     path('api/', include(router.urls)),
     path('admin/', block_everything),
     path('', block_everything),
-    path('<path:unknown_path>', block_everything),
+    # Remove the catch-all pattern temporarily to test
+    # path('<path:unknown_path>', block_everything),
 ]
