@@ -8,7 +8,7 @@ import os
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent  # This is correct
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-change-in-production')
@@ -17,11 +17,13 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-chang
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = [
-    'frecha-iotech.onrender.com',  # ✅ Fixed: lowercase with hyphen
-    'localhost',
-    '127.0.0.1',
+    'frecha-iotech.onrender.com',
     '.onrender.com'
 ]
+
+# Remove localhost in production for security
+if DEBUG:
+    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
 
 # Application definition
 INSTALLED_APPS = [
@@ -34,6 +36,7 @@ INSTALLED_APPS = [
     'store',
     'corsheaders',
     'rest_framework',
+    'rest_framework.authtoken',  # Add this for token authentication
 ]
 
 MIDDLEWARE = [
@@ -47,36 +50,16 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-# REST Framework configuration
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Allow access to anyone
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-    ],
-    'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.JSONParser',
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
-}
-
-# Add browsable API in development
-if DEBUG:
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')
 
 ROOT_URLCONF = 'Frecha_Iotech.urls'
 
-# Template configuration for React - FIXED PATHS
+# Template configuration
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             os.path.join(BASE_DIR, 'templates'),
-            os.path.join(BASE_DIR, 'build')  # For React build files
+            os.path.join(BASE_DIR, 'build')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -107,7 +90,6 @@ if 'DATABASE_URL' in os.environ:
         conn_health_checks=True,
     )
 
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -130,16 +112,14 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# Additional locations of static files (React build files) - FIXED PATHS
-STATICFILES_DIRS = [
-   os.path.join(BASE_DIR, 'static'),
-
-]
+# Remove static directory if it doesn't exist - COMMENT THIS OUT
+# STATICFILES_DIRS = [
+#    os.path.join(BASE_DIR, 'static'),
+# ]
 
 # Media files
 MEDIA_URL = '/media/'
@@ -147,33 +127,37 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings - FIXED URL
+# CORS settings - SECURE VERSION
 CORS_ALLOWED_ORIGINS = [
-    "https://frecha-iotechi.onrender.com",  # ✅ Fixed: lowercase with hyphen
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "https://frecha-iotechi.onrender.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://frecha-iotechi.onrender.com",  # ✅ Fixed: lowercase with hyphen
-    "http://localhost:3000",
+    "https://frecha-iotech.onrender.com",
+    "https://frecha-iotechi.onrender.com",
 ]
 
-CORS_ALLOW_CREDENTIALS = True
+# Add localhost only in development
+if DEBUG:
+    CORS_ALLOWED_ORIGINS.extend([
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ])
+    CSRF_TRUSTED_ORIGINS.extend([
+        "http://localhost:3000",
+    ])
 
-# Security settings for production
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    
-    # WhiteNoise configuration
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+CORS_ALLOW_CREDENTIALS = False  # More secure for your setup
 
-# REST Framework configuration
+# REST Framework configuration - SINGLE VERSION (FIXED DUPLICATE)
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # No public access
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',  # For admin
+        'rest_framework.authentication.TokenAuthentication',    # For frontend
+    ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
@@ -182,6 +166,20 @@ REST_FRAMEWORK = {
     ]
 }
 
-# Add browsable API in development
+# Add browsable API in development only
 if DEBUG:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # WhiteNoise configuration
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
