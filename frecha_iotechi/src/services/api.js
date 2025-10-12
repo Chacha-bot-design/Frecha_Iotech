@@ -1,4 +1,4 @@
-// src/api.js - UPDATE THESE URLS
+// frecha_iotechi/src/api.js - UPDATE THIS FILE
 import axios from 'axios';
 
 const API_BASE = 'https://frecha-iotech.onrender.com/api';
@@ -10,13 +10,13 @@ const api = axios.create({
 
 // ============ PUBLIC API CALLS ============
 export const getProviders = () => 
-  api.get('/public/providers/');  // CHANGED from '/providers/'
+  api.get('/public/providers/');  // CHANGED: added /public/
 
 export const getBundles = () => 
-  api.get('/public/bundles/');    // CHANGED from '/bundles/'
+  api.get('/public/bundles/');    // CHANGED: added /public/
 
 export const getRouters = () => 
-  api.get('/public/routers/');    // CHANGED from '/routers/'
+  api.get('/public/routers/');    // CHANGED: added /public/
 
 export const getPublicStatus = () => 
   api.get('/public/status/');
