@@ -1,75 +1,28 @@
-# store/views.py
-from rest_framework import viewsets, permissions
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, login
-from .models import Bundle, Provider, Router  # Adjust based on your actual models
-from .serializers import BundleSerializer, ProviderSerializer, RouterSerializer  # You'll need these
+from django.http import JsonResponse
+from .models import ServiceProvider, DataBundle, RouterProduct, Order
+from .serializers import ServiceProviderSerializer, DataBundleSerializer, RouterProductSerializer, OrderSerializer
 
-# If you don't have models yet, use these simple ViewSets
-class BundleViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
-    
-    def list(self, request):
-        return Response({
-            "message": "Bundles data",
-            "data": [
-                {"id": 1, "name": "Bundle 1"},
-                {"id": 2, "name": "Bundle 2"}
-            ]
-        })
+class ServiceProviderViewSet(viewsets.ModelViewSet):
+    queryset = ServiceProvider.objects.all()
+    serializer_class = ServiceProviderSerializer
 
-class ProviderViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
-    
-    def list(self, request):
-        return Response({
-            "message": "Providers data",
-            "data": [
-                {"id": 1, "name": "Provider 1"},
-                {"id": 2, "name": "Provider 2"}
-            ]
-        })
+class DataBundleViewSet(viewsets.ModelViewSet):
+    queryset = DataBundle.objects.all()
+    serializer_class = DataBundleSerializer
 
-class RouterViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
-    
-    def list(self, request):
-        return Response({
-            "message": "Routers data",
-            "data": [
-                {"id": 1, "name": "Router 1"},
-                {"id": 2, "name": "Router 2"}
-            ]
-        })
+class RouterProductViewSet(viewsets.ModelViewSet):
+    queryset = RouterProduct.objects.all()
+    serializer_class = RouterProductSerializer
 
-# Keep your existing function-based views for login/status
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
 @api_view(['GET'])
-@permission_classes([AllowAny])
-def api_status(request):
-    return Response({
-        "status": "API is running",
-        "authenticated": request.user.is_authenticated,
-        "user": request.user.username if request.user.is_authenticated else None
-    })
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def user_login(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
-        login(request, user)
-        return Response({
-            "message": "Login successful",
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email
-            }
-        })
-    else:
-        return Response({"message": "Invalid credentials"}, status=401)
+def bundles_by_provider(request, provider_id):
+    bundles = DataBundle.objects.filter(provider_id=provider_id)
+    serializer = DataBundleSerializer(bundles, many=True)
+    return Response(serializer.data)

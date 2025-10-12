@@ -1,17 +1,14 @@
-# store/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 
 router = DefaultRouter()
-router.register(r'bundles', views.BundleViewSet, basename='bundle')
-router.register(r'providers', views.ProviderViewSet, basename='provider')
-router.register(r'routers', views.RouterViewSet, basename='router')
+router.register(r'providers', views.ServiceProviderViewSet)
+router.register(r'bundles', views.DataBundleViewSet)
+router.register(r'routers', views.RouterProductViewSet)
+router.register(r'orders', views.OrderViewSet)
 
 urlpatterns = [
-    path('status/', views.api_status, name='api-status'),
-    path('auth/login/', views.user_login, name='user-login'),
-    
-    # Include the router URLs
     path('', include(router.urls)),
+    path('bundles-by-provider/<int:provider_id>/', views.bundles_by_provider, name='bundles-by-provider'),
 ]
