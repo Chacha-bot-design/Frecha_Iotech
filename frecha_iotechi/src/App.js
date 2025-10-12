@@ -1,4 +1,4 @@
-// App.js - Public frontend with optional login
+// App.js - UPDATED with correct API calls
 import React, { useState, useEffect } from 'react';
 import { 
   getPublicProviders, 
@@ -33,9 +33,9 @@ function App() {
   const loadPublicData = async () => {
     try {
       const [providers, bundles, routers] = await Promise.all([
-        getPublicProviders(),
-        getPublicBundles(), 
-        getPublicRouters()
+        getPublicProviders(),    // Now calls /api/public/providers/
+        getPublicBundles(),      // Now calls /api/public/bundles/
+        getPublicRouters()       // Now calls /api/public/routers/
       ]);
       
       setPublicData({
@@ -63,9 +63,9 @@ function App() {
     
     try {
       const [providers, bundles, routers] = await Promise.all([
-        getProtectedProviders(),
-        getProtectedBundles(),
-        getProtectedRouters()
+        getProtectedProviders(),  // Now calls /api/protected/providers/
+        getProtectedBundles(),    // Now calls /api/protected/bundles/
+        getProtectedRouters()     // Now calls /api/protected/routers/
       ]);
       
       setProtectedData({

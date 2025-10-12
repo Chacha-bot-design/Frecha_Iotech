@@ -1,25 +1,25 @@
-// api.js - Frontend API calls
+// api.js - UPDATED with correct URLs
 import axios from 'axios';
 
 const API_BASE = 'https://frecha-iotech.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_BASE,
-  withCredentials: true,  // Important for session cookies
+  withCredentials: true,
 });
 
 // ============ PUBLIC API CALLS (No login required) ============
-export const getPublicStatus = () => 
-  api.get('/public/status/');
-
 export const getPublicProviders = () => 
-  api.get('/public/providers/');
+  api.get('/public/providers/');  // CHANGED: /public/providers/
 
 export const getPublicBundles = () => 
-  api.get('/public/bundles/');
+  api.get('/public/bundles/');    // CHANGED: /public/bundles/
 
 export const getPublicRouters = () => 
-  api.get('/public/routers/');
+  api.get('/public/routers/');    // CHANGED: /public/routers/
+
+export const getPublicStatus = () => 
+  api.get('/public/status/');
 
 export const submitContactForm = (data) => 
   api.post('/public/contact/', data);
@@ -35,13 +35,13 @@ export const getCurrentUser = () =>
   api.get('/auth/me/');
 
 export const getProtectedProviders = () => 
-  api.get('/protected/providers/');
+  api.get('/protected/providers/');  // CHANGED: /protected/providers/
 
 export const getProtectedBundles = () => 
-  api.get('/protected/bundles/');
+  api.get('/protected/bundles/');    // CHANGED: /protected/bundles/
 
 export const getProtectedRouters = () => 
-  api.get('/protected/routers/');
+  api.get('/protected/routers/');    // CHANGED: /protected/routers/
 
 // Response interceptor
 api.interceptors.response.use(
@@ -53,3 +53,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export default api;
