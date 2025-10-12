@@ -1,9 +1,50 @@
+# store/views.py
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login
+from .models import Bundle, Provider, Router  # Adjust based on your actual models
+from .serializers import BundleSerializer, ProviderSerializer, RouterSerializer  # You'll need these
 
-# Public endpoint to check API status
+# If you don't have models yet, use these simple ViewSets
+class BundleViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+    
+    def list(self, request):
+        return Response({
+            "message": "Bundles data",
+            "data": [
+                {"id": 1, "name": "Bundle 1"},
+                {"id": 2, "name": "Bundle 2"}
+            ]
+        })
+
+class ProviderViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+    
+    def list(self, request):
+        return Response({
+            "message": "Providers data",
+            "data": [
+                {"id": 1, "name": "Provider 1"},
+                {"id": 2, "name": "Provider 2"}
+            ]
+        })
+
+class RouterViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+    
+    def list(self, request):
+        return Response({
+            "message": "Routers data",
+            "data": [
+                {"id": 1, "name": "Router 1"},
+                {"id": 2, "name": "Router 2"}
+            ]
+        })
+
+# Keep your existing function-based views for login/status
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def api_status(request):
@@ -13,7 +54,6 @@ def api_status(request):
         "user": request.user.username if request.user.is_authenticated else None
     })
 
-# Login endpoint for frontend
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def user_login(request):
@@ -33,28 +73,3 @@ def user_login(request):
         })
     else:
         return Response({"message": "Invalid credentials"}, status=401)
-
-# Protected API endpoints
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def bundle_list(request):
-    return Response({
-        "message": "Bundles data",
-        "data": []  # Add your actual data
-    })
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def provider_list(request):
-    return Response({
-        "message": "Providers data",
-        "data": []  # Add your actual data
-    })
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def router_list(request):
-    return Response({
-        "message": "Routers data", 
-        "data": []  # Add your actual data
-    })
