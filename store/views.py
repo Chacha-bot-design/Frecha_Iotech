@@ -1,56 +1,57 @@
-# store/views.py - FIXED WITH PROPER IMPORTS
+# store/views.py - UPDATED TO USE DATABASE
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
+from rest_framework import viewsets
+from .models import Provider, Bundle, Router
+from .serializers import ProviderSerializer, BundleSerializer, RouterSerializer
 
 # ============ PUBLIC ENDPOINTS (Anyone can access) ============
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def api_status(request):
-    """Public API status - no authentication required"""
     return Response({
         "status": "API is running",
         "message": "Frontend can access this endpoint",
-        "authenticated": request.user.is_authenticated
+        "authenticated": request.user.is_authenticated,
+        "total_providers": Provider.objects.count(),
+        "total_bundles": Bundle.objects.count(),
+        "total_routers": Router.objects.count()
     })
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def public_providers(request):
-    """Public providers list - limited data"""
-    return Response([
-        {"id": 1, "name": "Provider 1", "type": "Basic"},
-        {"id": 2, "name": "Provider 2", "type": "Basic"}
-    ])  # Return array directly for frontend
+    """Get providers from database"""
+    providers = Provider.objects.all()
+    serializer = ProviderSerializer(providers, many=True)
+    return Response(serializer.data)  # Returns actual database data
 
 @api_view(['GET']) 
 @permission_classes([AllowAny])
 def public_bundles(request):
-    """Public bundles list - limited data"""
-    return Response([
-        {"id": 1, "name": "Starter Bundle", "price": "99.99"},
-        {"id": 2, "name": "Business Bundle", "price": "199.99"}
-    ])  # Return array directly for frontend
+    """Get bundles from database"""
+    bundles = Bundle.objects.all()
+    serializer = BundleSerializer(bundles, many=True)
+    return Response(serializer.data)  # Returns actual database data
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def public_routers(request):
-    """Public routers list - limited data"""
-    return Response([
-        {"id": 1, "name": "Home Router", "type": "Basic"},
-        {"id": 2, "name": "Office Router", "type": "Professional"}
-    ])  # Return array directly for frontend
+    """Get routers from database"""
+    routers = Router.objects.all()
+    serializer = RouterSerializer(routers, many=True)
+    return Response(serializer.data)  # Returns actual database data
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def public_contact(request):
-    """Public contact form - no authentication required"""
     name = request.data.get('name')
     email = request.data.get('email')
     message = request.data.get('message')
     
-    # Process the contact form
+    # You could save this to a Contact model if you create one
     return Response({
         "message": "Thank you for your message! We'll get back to you soon.",
         "received_data": {"name": name, "email": email}
@@ -60,7 +61,6 @@ def public_contact(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def user_login(request):
-    """Login endpoint - public access"""
     username = request.data.get('username')
     password = request.data.get('password')
     
@@ -96,46 +96,20 @@ def current_user(request):
     })
 
 # ============ PROTECTED ENDPOINTS (Login required) ============
-from rest_framework import viewsets
-
-class ProtectedProviderViewSet(viewsets.ViewSet):
+class ProtectedProviderViewSet(viewsets.ModelViewSet):
     """Protected providers - full data, requires login"""
     permission_classes = [IsAuthenticated]
-    
-    def list(self, request):
-        return Response({
-            "message": "Protected providers data - full access",
-            "user": request.user.username,
-            "data": [
-                {"id": 1, "name": "Provider 1", "email": "provider1@example.com", "phone": "123-456-7890", "internal_id": "P001"},
-                {"id": 2, "name": "Provider 2", "email": "provider2@example.com", "phone": "123-456-7891", "internal_id": "P002"}
-            ]
-        })
+    queryset = Provider.objects.all()
+    serializer_class = ProviderSerializer
 
-class ProtectedBundleViewSet(viewsets.ViewSet):
+class ProtectedBundleViewSet(viewsets.ModelViewSet):
     """Protected bundles - full data, requires login"""
     permission_classes = [IsAuthenticated]
-    
-    def list(self, request):
-        return Response({
-            "message": "Protected bundles data - full access", 
-            "user": request.user.username,
-            "data": [
-                {"id": 1, "name": "Starter Bundle", "price": "99.99", "description": "Basic package", "features": ["Feature 1", "Feature 2"]},
-                {"id": 2, "name": "Business Bundle", "price": "199.99", "description": "Professional package", "features": ["All Features", "Priority Support"]}
-            ]
-        })
+    queryset = Bundle.objects.all()
+    serializer_class = BundleSerializer
 
-class ProtectedRouterViewSet(viewsets.ViewSet):
+class ProtectedRouterViewSet(viewsets.ModelViewSet):
     """Protected routers - full data, requires login"""
     permission_classes = [IsAuthenticated]
-    
-    def list(self, request):
-        return Response({
-            "message": "Protected routers data - full access",
-            "user": request.user.username,
-            "data": [
-                {"id": 1, "name": "Home Router", "model": "HR-1000", "ip_address": "192.168.1.1", "configuration": "Advanced"},
-                {"id": 2, "name": "Office Router", "model": "OR-2000", "ip_address": "192.168.1.2", "configuration": "Enterprise"}
-            ]
-        })
+    queryset = Router.objects.all()
+    serializer_class = RouterSerializer
