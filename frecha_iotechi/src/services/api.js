@@ -1,37 +1,17 @@
-// frecha_iotechi/src/api.js - UPDATE THIS FILE
 import axios from 'axios';
 
-const API_BASE = 'https://frecha-iotech.onrender.com/api';
+const API_BASE_URL = 'http://localhost:8000/api';
 
 const api = axios.create({
-  baseURL: API_BASE,
-  withCredentials: true,
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-// ============ PUBLIC API CALLS ============
-export const getProviders = () => 
-  api.get('/public/providers/');  // CHANGED: added /public/
-
-export const getBundles = () => 
-  api.get('/public/bundles/');    // CHANGED: added /public/
-
-export const getRouters = () => 
-  api.get('/public/routers/');    // CHANGED: added /public/
-
-export const getPublicStatus = () => 
-  api.get('/public/status/');
-
-export const submitContactForm = (data) => 
-  api.post('/public/contact/', data);
-
-// ============ AUTHENTICATION ============
-export const login = (username, password) => 
-  api.post('/auth/login/', { username, password });
-
-export const logout = () => 
-  api.post('/auth/logout/');
-
-export const getCurrentUser = () => 
-  api.get('/auth/me/');
-
-export default api;
+export const getProviders = () => api.get('/providers/');
+export const getBundles = () => api.get('/bundles/');
+export const getBundlesByProvider = (providerId) => api.get(`/bundles-by-provider/${providerId}/`);
+export const getRouters = () => api.get('/routers/');
+export const createOrder = (orderData) => api.post('/orders/', orderData);
+export const getOrders = () => api.get('/orders/');
