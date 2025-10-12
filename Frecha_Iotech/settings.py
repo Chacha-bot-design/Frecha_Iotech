@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'store',
     'corsheaders',
     'rest_framework',
-    'rest_framework.authtoken',  # Add this for token authentication
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -116,46 +116,50 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Remove static directory if it doesn't exist - COMMENT THIS OUT
-# STATICFILES_DIRS = [
-#    os.path.join(BASE_DIR, 'static'),
-# ]
-
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings - SECURE VERSION
+# ============ FIXED CORS SETTINGS ============
 CORS_ALLOWED_ORIGINS = [
-    "https://frecha-iotechi.onrender.com",
+    "https://frecha-iotech.onrender.com",  # FIXED: Your actual domain
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://frecha-iotech.onrender.com",
-    "https://frecha-iotechi.onrender.com",
+    "https://frecha-iotech.onrender.com",  # FIXED: Your actual domain
 ]
+
+# CRITICAL FIX: Enable credentials for frontend-backend communication
+CORS_ALLOW_CREDENTIALS = True  # CHANGED FROM False
 
 # Add localhost only in development
 if DEBUG:
     CORS_ALLOWED_ORIGINS.extend([
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:8000",
     ])
     CSRF_TRUSTED_ORIGINS.extend([
         "http://localhost:3000",
+        "http://127.0.0.1:3000",
     ])
 
-CORS_ALLOW_CREDENTIALS = False  # More secure for your setup
+# Session settings for cross-origin requests
+SESSION_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
+CSRF_COOKIE_SECURE = not DEBUG
 
-# BETTER: Only apply permissions to API views
-# REST Framework configuration - FIXED VERSION
+# ============ FIXED REST FRAMEWORK SETTINGS ============
 REST_FRAMEWORK = {
-   
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Default: require login
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -167,9 +171,9 @@ REST_FRAMEWORK = {
 
 # Add browsable API in development only
 if DEBUG:
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')# This ensures permissions only apply to API views, not regular Django views# Add browsable API in development only
-if DEBUG:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')
+    # Optional: Make APIs publicly accessible in development for testing
+    # REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = ['rest_framework.permissions.AllowAny']
 
 # Security settings for production
 if not DEBUG:
@@ -178,7 +182,7 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     
