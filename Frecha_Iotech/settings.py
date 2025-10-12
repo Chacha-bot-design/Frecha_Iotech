@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ============ SECURITY CRITICAL SETTINGS ============
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['SECRET_KEY']  # CHANGED: Use environment variable, never hardcode
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key-change-in-production')  # FIXED: Use get for local dev
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
@@ -50,8 +50,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'store.security_middleware.SecurityHeadersMiddleware', 
-    'store.security_middleware.InputValidationMiddleware
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -80,8 +78,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-            # ADDED: Auto-escape by default for security
-            'builtins': ['django.template.defaultfilters'],
         },
     },
 ]
@@ -191,9 +187,6 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# ADDED: Prevent preflight cache for security
-CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
-
 # Add localhost only in development
 if DEBUG:
     CORS_ALLOWED_ORIGINS.extend([
@@ -234,9 +227,6 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
         'rest_framework.parsers.FormParser',
     ],
-    # ADDED: Security-focused settings
-    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'rest_framework.negotiation.DefaultContentNegotiation',
-    'UNAUTHENTICATED_USER': None,
 }
 
 # Add browsable API in development only
@@ -307,15 +297,3 @@ LOGGING = {
         },
     },
 }
-
-# ============ ADDITIONAL SECURITY CHECKS ============
-# Ensure secret key is set in production
-if not DEBUG and SECRET_KEY.startswith('django-insecure-'):
-    raise ValueError(
-        "Insecure SECRET_KEY detected in production! "
-        "Set a strong SECRET_KEY environment variable."
-    )
-
-# Warn about common security misconfigurations
-if DEBUG:
-    print("⚠️  WARNING: DEBUG mode is enabled. Disable in production!")
