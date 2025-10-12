@@ -1,17 +1,55 @@
+// api.js - Frontend API calls
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://frecha-iotech.onrender.com/api';
+const API_BASE = 'https://frecha-iotech.onrender.com/api';
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: API_BASE,
+  withCredentials: true,  // Important for session cookies
 });
 
-export const getProviders = () => api.get('/providers/');
-export const getBundles = () => api.get('/bundles/');
-export const getBundlesByProvider = (providerId) => api.get(`/bundles/?provider_id=${providerId}`);
-export const getRouters = () => api.get('/routers/');
-export const createOrder = (orderData) => api.post('/orders/', orderData);
-export const getOrders = () => api.get('/orders/');
+// ============ PUBLIC API CALLS (No login required) ============
+export const getPublicStatus = () => 
+  api.get('/public/status/');
+
+export const getPublicProviders = () => 
+  api.get('/public/providers/');
+
+export const getPublicBundles = () => 
+  api.get('/public/bundles/');
+
+export const getPublicRouters = () => 
+  api.get('/public/routers/');
+
+export const submitContactForm = (data) => 
+  api.post('/public/contact/', data);
+
+// ============ PROTECTED API CALLS (Login required) ============
+export const login = (username, password) => 
+  api.post('/auth/login/', { username, password });
+
+export const logout = () => 
+  api.post('/auth/logout/');
+
+export const getCurrentUser = () => 
+  api.get('/auth/me/');
+
+export const getProtectedProviders = () => 
+  api.get('/protected/providers/');
+
+export const getProtectedBundles = () => 
+  api.get('/protected/bundles/');
+
+export const getProtectedRouters = () => 
+  api.get('/protected/routers/');
+
+// Response interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.log('Authentication required for this feature');
+    }
+    return Promise.reject(error);
+  }
+);

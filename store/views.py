@@ -1,23 +1,76 @@
-# store/views.py - PRODUCTION SECURE VERSION
+# store/views.py
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
 
-# ============ PUBLIC ENDPOINTS (No authentication required) ============
+# ============ PUBLIC ENDPOINTS (Anyone can access) ============
 @api_view(['GET'])
-@permission_classes([AllowAny])  # Only for public info
+@permission_classes([AllowAny])
 def api_status(request):
+    """Public API status - no authentication required"""
     return Response({
         "status": "API is running",
-        "authenticated": request.user.is_authenticated,
-        "user": request.user.username if request.user.is_authenticated else None
+        "message": "Frontend can access this endpoint",
+        "authenticated": request.user.is_authenticated
+    })
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def public_providers(request):
+    """Public providers list - limited data"""
+    return Response({
+        "message": "Public providers data",
+        "data": [
+            {"id": 1, "name": "Provider 1", "type": "Basic"},
+            {"id": 2, "name": "Provider 2", "type": "Basic"}
+        ]
+    })
+
+@api_view(['GET']) 
+@permission_classes([AllowAny])
+def public_bundles(request):
+    """Public bundles list - limited data"""
+    return Response({
+        "message": "Public bundles data",
+        "data": [
+            {"id": 1, "name": "Starter Bundle", "price": "99.99"},
+            {"id": 2, "name": "Business Bundle", "price": "199.99"}
+        ]
+    })
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def public_routers(request):
+    """Public routers list - limited data"""
+    return Response({
+        "message": "Public routers data", 
+        "data": [
+            {"id": 1, "name": "Home Router", "type": "Basic"},
+            {"id": 2, "name": "Office Router", "type": "Professional"}
+        ]
     })
 
 @api_view(['POST'])
-@permission_classes([AllowAny])  # Only for login
+@permission_classes([AllowAny])
+def public_contact(request):
+    """Public contact form - no authentication required"""
+    name = request.data.get('name')
+    email = request.data.get('email')
+    message = request.data.get('message')
+    
+    # Process the contact form (save to database, send email, etc.)
+    return Response({
+        "message": "Thank you for your message! We'll get back to you soon.",
+        "received_data": {"name": name, "email": email}
+    })
+
+# ============ PROTECTED ENDPOINTS (Login required) ============
+@api_view(['POST'])
+@permission_classes([AllowAny])  # This needs to be public for login
 def user_login(request):
+    """Login endpoint - public access"""
     username = request.data.get('username')
     password = request.data.get('password')
     
@@ -29,61 +82,53 @@ def user_login(request):
             "user": {
                 "id": user.id,
                 "username": user.username,
-                "email": user.email,
-                "is_staff": user.is_staff
+                "email": user.email
             }
         })
     else:
         return Response({"message": "Invalid credentials"}, status=401)
 
-# ============ PROTECTED ENDPOINTS (Authentication required) ============
-class ProviderViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]  # CHANGED: Requires login
+class ProtectedProviderViewSet(viewsets.ViewSet):
+    """Protected providers - full data, requires login"""
+    permission_classes = [IsAuthenticated]
     
     def list(self, request):
         return Response({
-            "message": "Providers data",
-            "user": request.user.username,  # Shows which user is accessing
-            "data": [
-                {"id": 1, "name": "Provider 1", "email": "provider1@example.com"},
-                {"id": 2, "name": "Provider 2", "email": "provider2@example.com"}
-            ]
-        })
-
-class BundleViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]  # CHANGED: Requires login
-    
-    def list(self, request):
-        return Response({
-            "message": "Bundles data", 
+            "message": "Protected providers data - full access",
             "user": request.user.username,
             "data": [
-                {"id": 1, "name": "Bundle 1", "price": "99.99"},
-                {"id": 2, "name": "Bundle 2", "price": "149.99"}
+                {"id": 1, "name": "Provider 1", "email": "provider1@example.com", "phone": "123-456-7890", "internal_id": "P001"},
+                {"id": 2, "name": "Provider 2", "email": "provider2@example.com", "phone": "123-456-7891", "internal_id": "P002"}
             ]
         })
 
-class RouterViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]  # CHANGED: Requires login
+class ProtectedBundleViewSet(viewsets.ViewSet):
+    """Protected bundles - full data, requires login"""
+    permission_classes = [IsAuthenticated]
     
     def list(self, request):
         return Response({
-            "message": "Routers data",
+            "message": "Protected bundles data - full access", 
             "user": request.user.username,
             "data": [
-                {"id": 1, "name": "Router 1", "model": "Model X"},
-                {"id": 2, "name": "Router 2", "model": "Model Y"}
+                {"id": 1, "name": "Starter Bundle", "price": "99.99", "description": "Basic package", "features": ["Feature 1", "Feature 2"]},
+                {"id": 2, "name": "Business Bundle", "price": "199.99", "description": "Professional package", "features": ["All Features", "Priority Support"]}
             ]
         })
 
-# ============ ADMIN ONLY ENDPOINTS ============
-@api_view(['GET'])
-@permission_classes([IsAdminUser])  # Only admin users
-def admin_stats(request):
-    return Response({
-        "message": "Admin statistics",
-        "data": {"total_users": 150, "revenue": 50000}
-    })
+class ProtectedRouterViewSet(viewsets.ViewSet):
+    """Protected routers - full data, requires login"""
+    permission_classes = [IsAuthenticated]
+    
+    def list(self, request):
+        return Response({
+            "message": "Protected routers data - full access",
+            "user": request.user.username,
+            "data": [
+                {"id": 1, "name": "Home Router", "model": "HR-1000", "ip_address": "192.168.1.1", "configuration": "Advanced"},
+                {"id": 2, "name": "Office Router", "model": "OR-2000", "ip_address": "192.168.1.2", "configuration": "Enterprise"}
+            ]
+        })
 
 # ============ USER MANAGEMENT ============
 @api_view(['POST'])
@@ -99,7 +144,6 @@ def current_user(request):
         "user": {
             "id": request.user.id,
             "username": request.user.username,
-            "email": request.user.email,
-            "is_staff": request.user.is_staff
+            "email": request.user.email
         }
     })
