@@ -1,3 +1,4 @@
+// api.js
 import axios from 'axios';
 
 const API_BASE_URL = 'https://frecha-iotech.onrender.com/api';
@@ -15,3 +16,5 @@ export const getBundlesByProvider = (providerId) => api.get(`/bundles-by-provide
 export const getRouters = () => api.get('/routers/');
 export const createOrder = (orderData) => api.post('/orders/', orderData);
 export const getOrders = () => api.get('/orders/');
+
+export default api;
