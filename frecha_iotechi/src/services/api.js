@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://frecha_iotechi.com/api';
+const API_BASE_URL = 'https://frecha_iotech.com/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
