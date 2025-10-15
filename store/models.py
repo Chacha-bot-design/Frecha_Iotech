@@ -4,7 +4,7 @@ class ServiceProvider(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     logo = models.ImageField(upload_to='providers/', blank=True, null=True)
-    color = models.CharField(max_length=7, default='#000000')
+    color = models.CharField(max_length=7)
     is_active = models.BooleanField(default=True)
     
     def __str__(self):
@@ -25,7 +25,7 @@ class RouterProduct(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    color = models.CharField(max_length=7, default='#000000')
+    color = models.CharField(max_length=7)
     image = models.ImageField(upload_to='routers/', blank=True, null=True)
     specifications = models.TextField(blank=True)
     
