@@ -23,6 +23,7 @@ urlpatterns = [
     path('providers/', views.public_providers, name='old-providers'),
     path('bundles/', views.public_bundles, name='old-bundles'),
     path('routers/', views.public_routers, name='old-routers'),
+    path('bundles-by-provider/<int:provider_id>/', views.provider_bundles, name='old-bundles-by-provider'),
     
     # ============ AUTHENTICATION ROUTES ============
     path('auth/login/', views.user_login, name='user-login'),
