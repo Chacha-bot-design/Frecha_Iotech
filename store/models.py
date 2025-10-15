@@ -25,6 +25,7 @@ class RouterProduct(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    color = models.CharField(max_length=7, default='#000000')
     image = models.ImageField(upload_to='routers/', blank=True, null=True)
     specifications = models.TextField(blank=True)
     
