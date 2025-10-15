@@ -9,7 +9,8 @@ class ServiceProviderSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'is_active', 'bundle_count']
     
     def get_bundle_count(self, obj):
-        return obj.databundle.count()
+        # Use the correct relationship name 'bundles' from your model
+        return obj.bundles.count()  # ✅ FIXED: Changed from databundle to bundles
 
 class DataBundleSerializer(serializers.ModelSerializer):
     provider_name = serializers.CharField(source='provider.name', read_only=True)
