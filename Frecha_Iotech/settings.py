@@ -92,19 +92,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
 
-# ============ DATABASE CONFIGURATION ============
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'postgres.nhaamsmqqlicuuttghhs',
+        'USER': 'postgres',
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': '@aws-1-eu-west-1.pooler.supabase.com:6543/postgres',  # ← Pooler host
-        'PORT': '6543',  # ← Pooler port
+        'HOST': 'db.nhaamsmqqlicuuttghhs.supabase.co',
+        'PORT': '5432',
         'OPTIONS': {'sslmode': 'require'}
     }
 }
-
 # ============ PASSWORD & AUTHENTICATION ============
 # Strong password validation
 AUTH_PASSWORD_VALIDATORS = [
