@@ -93,7 +93,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
 
 # ============ DATABASE CONFIGURATION ============
-# Database configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -101,13 +100,13 @@ DATABASES = {
     }
 }
 
-# PostgreSQL for production (Render + Supabase)
 if 'DATABASE_URL' in os.environ:
     DATABASES['default'] = dj_database_url.config(
         conn_max_age=600,
         conn_health_checks=True,
-        ssl_require=True  # Force SSL for Supabase
+        ssl_require=True
     )
+
 # ============ PASSWORD & AUTHENTICATION ============
 # Strong password validation
 AUTH_PASSWORD_VALIDATORS = [
