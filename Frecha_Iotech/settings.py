@@ -112,7 +112,7 @@ DATABASES = {
 }
 
 # Router to determine which database to use
-DATABASE_ROUTERS = ['Frecha_Iotech.Router.DatabaseRouter']
+DATABASE_ROUTERS = ['Frecha_Iotech.Router']
 
 # ============ PASSWORD & AUTHENTICATION ============
 # Strong password validation
