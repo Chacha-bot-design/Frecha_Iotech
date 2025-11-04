@@ -99,7 +99,7 @@ DATABASES = {
         'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),  # ← Secure: from environment
-        'HOST': '@aws-1-eu-west-1.pooler.supabase.com:6543/postgres',  # ← Correct host with 'db.'
+        'HOST': 'db.nhaamsmqqlicuuttghhs.supabase.co',  # ← Correct host with 'db.'
         'PORT': '5432',
         'OPTIONS': {
             'sslmode': 'require'
