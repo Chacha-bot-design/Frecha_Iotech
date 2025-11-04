@@ -91,23 +91,23 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
-# ============ NEW SUPABASE DATABASE CONFIGURATION ============
+# ============ SUPABASE CONFIGURATION ============
+import dj_database_url
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres.wbcqhxrhwgdcqwvweeph',
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': 'aws-1-eu-north-1.pooler.supabase.com',  # ← New host
-        'PORT': '6543',
-        'OPTIONS': {
-            'sslmode': 'require',
-            'connect_timeout': 10,
-        },
-        'CONN_MAX_AGE': 600,
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
+# Override with Supabase if DATABASE_URL exists
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True
+    )
 
 # ============ PASSWORD & AUTHENTICATION ============
 # Strong password validation
