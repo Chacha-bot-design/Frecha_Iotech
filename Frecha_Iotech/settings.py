@@ -91,17 +91,23 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
-# ============ DATABASE CONFIGURATION ============
+# ============ NEW SUPABASE DATABASE CONFIGURATION ============
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': 'db.@aws-1-eu-north-1.pooler.supabase.co',  # ← New host
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+            'connect_timeout': 10,
+        },
+        'CONN_MAX_AGE': 600,
     }
 }
 
-# NO OTHER DATABASE CONFIGURATIONS
-# NO DATABASE_ROUTERS LINE
-# NO POSTGRESQL CONFIGURATIONS
 
 # ============ PASSWORD & AUTHENTICATION ============
 # Strong password validation
