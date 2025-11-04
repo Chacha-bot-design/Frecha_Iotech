@@ -94,17 +94,11 @@ WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
 
 # ============ DATABASE CONFIGURATION ============
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),  # ← Secure: from environment
-        'HOST': 'db.nhaamsmqqlicuuttghhs.supabase.co',  # ← Correct host with 'db.'
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require'
-        }
-    }
+    'default': dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True
+    )
 }
 
 # ============ PASSWORD & AUTHENTICATION ============
