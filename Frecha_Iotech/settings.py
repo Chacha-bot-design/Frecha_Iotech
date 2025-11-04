@@ -101,17 +101,13 @@ DATABASES = {
     }
 }
 
-# PostgreSQL for production (Render)
+# PostgreSQL for production (Render + Supabase)
 if 'DATABASE_URL' in os.environ:
     DATABASES['default'] = dj_database_url.config(
         conn_max_age=600,
         conn_health_checks=True,
+        ssl_require=True  # Force SSL for Supabase
     )
-    # Force SSL for database connections
-    DATABASES['default']['OPTIONS'] = {
-        'sslmode': 'require',
-    }
-
 # ============ PASSWORD & AUTHENTICATION ============
 # Strong password validation
 AUTH_PASSWORD_VALIDATORS = [
