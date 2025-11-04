@@ -91,28 +91,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
-# ============ MULTIPLE DATABASE CONFIGURATION ============
+# ============ DATABASE CONFIGURATION ============
 DATABASES = {
-    # Primary database - SQLite (temporary)
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    },
-    
-    # Supabase PostgreSQL (for future use)
-    'supabase': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': 'db.nhaamsmqqlicuuttghhs.supabase.co',
-        'PORT': '5432',
-        'OPTIONS': {'sslmode': 'require'}
     }
 }
 
-# Router to determine which database to use
-DATABASE_ROUTERS = ['Frecha_Iotech.Router']
+# NO OTHER DATABASE CONFIGURATIONS
+# NO DATABASE_ROUTERS LINE
+# NO POSTGRESQL CONFIGURATIONS
 
 # ============ PASSWORD & AUTHENTICATION ============
 # Strong password validation
