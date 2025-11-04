@@ -93,14 +93,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
 
 # ============ DATABASE CONFIGURATION ============
-# Force PostgreSQL with Supabase
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': 'Frecha08#',  # ← REPLACE THIS
-        'HOST': 'https://nhaamsmqqlicuuttghhs.supabase.co',    # ← REPLACE THIS  
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),  # ← Secure: from environment
+        'HOST': 'db.nhaamsmqqlicuuttghhs.supabase.co',  # ← Correct host with 'db.'
         'PORT': '5432',
         'OPTIONS': {
             'sslmode': 'require'
