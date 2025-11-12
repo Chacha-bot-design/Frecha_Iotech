@@ -1,20 +1,17 @@
-// services/api.js - COMPLETELY NEW VERSION
+// services/api.js - COMPLETELY UPDATED
 import axios from 'axios';
 
-const API_BASE_URL = 'https://frecha-iotech.onrender.com';
-
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: 'https://frecha-iotech.onrender.com',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor
+// Add request interceptor to log outgoing requests
 api.interceptors.request.use(
   (config) => {
-    console.log(`🔄 Outgoing API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
-    console.log('📦 Request Data:', config.data);
+    console.log(`🔄 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
     return config;
   },
   (error) => {
@@ -23,24 +20,55 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Add response interceptor to log responses
 api.interceptors.response.use(
   (response) => {
-    console.log(`✅ API Success: ${response.status} ${response.config.url}`);
+    console.log(`✅ API Success: ${response.config.url}`, response.status);
     return response;
   },
   (error) => {
-    console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`);
+    console.error(`❌ API Error: ${error.config?.url}`, error.response?.status, error.response?.data);
     return Promise.reject(error);
   }
 );
 
-// API functions
-export const getProviders = () => api.get('/api/providers/');
-export const getBundles = () => api.get('/api/bundles/');
-export const getBundlesByProvider = (providerId) => api.get(`/api/bundles/provider/${providerId}/`);
-export const getRouters = () => api.get('/api/routers/');
+// ✅ CORRECT PUBLIC ROUTES
+export const getProviders = () => api.get('/api/public/providers/');
+export const getBundles = () => api.get('/api/public/bundles/');
+export const getRouters = () => api.get('/api/public/routers/');
 export const createOrder = (orderData) => api.post('/api/public/orders/create/', orderData);
 
+// ✅ CORRECT BUNDLES BY PROVIDER ROUTE
+export const getBundlesByProvider = (providerId) => 
+  api.get(`/api/public/providers/${providerId}/bundles/`);
 
-export default api;
+// Test function
+export const testAllEndpoints = async () => {
+  try {
+    console.log('🧪 Testing all API endpoints...');
+    
+    // Test providers
+    const providers = await getProviders();
+    console.log('✅ Providers endpoint:', providers.data);
+    
+    // Test bundles
+    const bundles = await getBundles();
+    console.log('✅ Bundles endpoint:', bundles.data);
+    
+    // Test routers
+    const routers = await getRouters();
+    console.log('✅ Routers endpoint:', routers.data);
+    
+    // Test bundles by provider
+    if (providers.data && providers.data.length > 0) {
+      const providerBundles = await getBundlesByProvider(providers.data[0].id);
+      console.log('✅ Bundles by provider endpoint:', providerBundles.data);
+    }
+    
+    console.log('🎉 All API endpoints are working!');
+    return true;
+  } catch (error) {
+    console.error('❌ API test failed:', error);
+    return false;
+  }
+};
