@@ -1,6 +1,6 @@
 """
 Django settings for Frecha_Iotech project.
-PRODUCTION-READY for Render with PostgreSQL
+PRODUCTION-READY for Railway (PostgreSQL) + Render (Backend/Frontend)
 """
 
 from pathlib import Path
@@ -12,17 +12,16 @@ from django.core.management.utils import get_random_secret_key
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ============ PRODUCTION SECURITY SETTINGS ============
-# SECURITY WARNING: keep the secret key used in production secret!
-# FIXED: Use get() with fallback for development
 SECRET_KEY = os.environ.get('SECRET_KEY', get_random_secret_key())
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-# Production domains only
+# Render domains - update these with your actual Render domains
+BACKEND_DOMAIN = os.environ.get('BACKEND_DOMAIN', 'frecha-iotech.onrender.com')
+FRONTEND_DOMAIN = os.environ.get('FRONTEND_DOMAIN', 'frecha-iotechi.onrender.com')
+
 ALLOWED_HOSTS = [
-    'frecha-iotech.onrender.com',      # Backend domain
-    'frecha-iotechi.onrender.com',     # Frontend domain
+    BACKEND_DOMAIN,
+    FRONTEND_DOMAIN,
 ]
 
 # Development settings
@@ -91,9 +90,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Frecha_Iotech.wsgi.application'
-# ============ SUPABASE CONFIGURATION ============
-import dj_database_url
 
+# ============ RAILWAY POSTGRESQL CONFIGURATION ============
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -101,16 +99,30 @@ DATABASES = {
     }
 }
 
-# Override with Supabase if DATABASE_URL exists
-if 'DATABASE_URL' in os.environ:
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=True
-    )
+# Railway PostgreSQL configuration
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    print(f"🔧 Configuring Railway PostgreSQL database...")
+    try:
+        # Railway provides DATABASE_URL in postgresql:// format
+        DATABASES['default'] = dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True
+        )
+        print("✅ Railway PostgreSQL configured successfully")
+        print(f"   Database: {DATABASES['default'].get('ENGINE', 'Unknown')}")
+        print(f"   Host: {DATABASES['default'].get('HOST', 'Unknown')}")
+        print(f"   Name: {DATABASES['default'].get('NAME', 'Unknown')}")
+    except Exception as e:
+        print(f"❌ Railway Database configuration error: {e}")
+        print("🔄 Falling back to SQLite")
+else:
+    print("ℹ️  No DATABASE_URL found, using SQLite (development)")
 
 # ============ PASSWORD & AUTHENTICATION ============
-# Strong password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -118,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
         'OPTIONS': {
-            'min_length': 10,  # Strong minimum length
+            'min_length': 10,
         }
     },
     {
@@ -133,12 +145,12 @@ AUTH_PASSWORD_VALIDATORS = [
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
+SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = not DEBUG
 
 # CSRF security
 CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
+CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_USE_SESSIONS = False
 
@@ -160,13 +172,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ============ CORS SECURITY CONFIGURATION ============
 CORS_ALLOWED_ORIGINS = [
-    "https://frecha-iotech.onrender.com",   # Backend
-    "https://frecha-iotechi.onrender.com",  # Frontend
+    f"https://{BACKEND_DOMAIN}",
+    f"https://{FRONTEND_DOMAIN}",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://frecha-iotech.onrender.com",   # Backend
-    "https://frecha-iotechi.onrender.com",  # Frontend
+    f"https://{BACKEND_DOMAIN}",
+    f"https://{FRONTEND_DOMAIN}",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -205,6 +217,7 @@ if DEBUG:
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
+        "http://127.0.0.1:8000",
     ])
 
 # ============ REST FRAMEWORK PRODUCTION CONFIG ============
@@ -216,14 +229,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',  # TEMPORARY for testing
     ],
-    # Rate limiting for security
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',    # Prevent brute force
-        'user': '1000/hour'    # Reasonable user limits
+        'anon': '100/hour',
+        'user': '1000/hour'
     },
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -302,9 +314,8 @@ LOGGING = {
     },
 }
 
-# ============ SECURITY WARNINGS ============
-# Warn about security issues
-if not DEBUG and SECRET_KEY == 'django-insecure-':
-    print("⚠️  WARNING: Using default insecure SECRET_KEY in production!")
-else:
-    print(f"✅ Security: SECRET_KEY is {'set' if not DEBUG else 'using development key'}")
+print(f"🚀 Configuration Summary:")
+print(f"   Backend: {BACKEND_DOMAIN}")
+print(f"   Frontend: {FRONTEND_DOMAIN}")
+print(f"   Database: {'Railway PostgreSQL' if DATABASE_URL else 'SQLite (Dev)'}")
+print(f"   Debug: {DEBUG}")
