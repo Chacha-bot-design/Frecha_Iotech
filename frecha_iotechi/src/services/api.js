@@ -40,6 +40,7 @@ export const getProviders = () => api.get('/api/providers/');
 export const getBundles = () => api.get('/api/bundles/');
 export const getBundlesByProvider = (providerId) => api.get(`/api/bundles/provider/${providerId}/`);
 export const getRouters = () => api.get('/api/routers/');
-export const createOrder = (orderData) => api.post('/api/orders/', orderData); // ✅ FIXED
+export const createOrder = (orderData) => api.post('/api/public/orders/create/', orderData);
+
 
 export default api;
