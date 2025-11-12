@@ -65,18 +65,92 @@ def public_routers(request):
 @permission_classes([AllowAny])
 def create_order(request):
     """Create a new order"""
+    print("🚨 ========== CREATE_ORDER START ==========")
+    
     try:
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            order = serializer.save()
+        # Log the incoming request details
+        print("📦 Request method:", request.method)
+        print("📦 Content type:", request.content_type)
+        print("📦 Raw data:", request.data)
+        print("📦 User:", request.user)
+        
+        # Check if we have the required data
+        required_fields = ['customer_name', 'email', 'phone', 'service_type', 'product_id']
+        received_data = {}
+        
+        for field in required_fields:
+            value = request.data.get(field)
+            received_data[field] = value
+            print(f"📦 {field}: {value} (type: {type(value)})")
+        
+        # Check for missing fields
+        missing_fields = [field for field in required_fields if not request.data.get(field)]
+        if missing_fields:
+            print(f"❌ Missing fields: {missing_fields}")
             return Response({
-                "message": "Order created successfully!",
-                "order_id": order.id,
-                "status": order.status
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                "success": False,
+                "error": f"Missing required fields: {', '.join(missing_fields)}"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        print("✅ All required fields present")
+        
+        # Test if we can access the Order model
+        print("🧪 Testing Order model access...")
+        try:
+            order_count = Order.objects.count()
+            print(f"✅ Order model accessible. Total orders: {order_count}")
+        except Exception as model_error:
+            print(f"❌ Order model error: {str(model_error)}")
+            raise model_error
+        
+        # Test the serializer
+        print("🧪 Testing serializer...")
+        serializer = OrderSerializer(data=request.data)
+        print("📦 Serializer data:", request.data)
+        
+        if serializer.is_valid():
+            print("✅ Serializer is valid")
+            try:
+                order = serializer.save()
+                print(f"🎉 Order created successfully! ID: {order.id}")
+                
+                return Response({
+                    "success": True,
+                    "message": "Order created successfully!",
+                    "order_id": order.id,
+                    "status": order.status
+                }, status=status.HTTP_201_CREATED)
+                
+            except Exception as save_error:
+                print(f"❌ Error saving order: {str(save_error)}")
+                import traceback
+                print(f"🔍 Save error traceback: {traceback.format_exc()}")
+                raise save_error
+                
+        else:
+            print("❌ Serializer validation failed")
+            print("🔍 Serializer errors:", serializer.errors)
+            return Response({
+                "success": False,
+                "error": "Data validation failed",
+                "details": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print(f"💥 CRITICAL ERROR in create_order: {str(e)}")
+        import traceback
+        error_traceback = traceback.format_exc()
+        print(f"🔍 FULL TRACEBACK:\n{error_traceback}")
+        
+        # Return detailed error for debugging
+        return Response({
+            "success": False,
+            "error": f"Internal server error: {str(e)}",
+            "traceback": error_traceback
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    finally:
+        print("🚨 ========== CREATE_ORDER END ==========")
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
