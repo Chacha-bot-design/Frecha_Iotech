@@ -1,60 +1,34 @@
-# store/models.py - WITH IMAGE FIELDS
 from django.db import models
-
-class ServiceProvider(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    logo = models.ImageField(upload_to='providers/', blank=True, null=True)
-    color = models.CharField(max_length=7, default='#000000')
-    is_active = models.BooleanField(default=True)
-    
-    def __str__(self):
-        return self.name
-
-class DataBundle(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    provider = models.ForeignKey(ServiceProvider, on_delete=models.CASCADE, related_name='bundles')
-    data_amount = models.CharField(max_length=50, blank=True)
-    validity = models.CharField(max_length=50, blank=True)
-    
-    def __str__(self):
-        return f"{self.name} - {self.provider.name}"
-
-class RouterProduct(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    color = models.CharField(max_length=7, default='#000000')
-    image = models.ImageField(upload_to='routers/', blank=True, null=True)
-    specifications = models.TextField(blank=True)
-    
-    def __str__(self):
-        return self.name
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Order(models.Model):
-    SERVICE_TYPES = [
-        ('bundle', 'Data Bundle'),
-        ('router', 'Router'),
-    ]
-    
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
         ('processing', 'Processing'),
-        ('completed', 'Completed'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
     ]
     
-    customer_name = models.CharField(max_length=200)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    service_type = models.CharField(max_length=50, choices=SERVICE_TYPES)
-    product_id = models.IntegerField()
-    package_details = models.TextField(blank=True)
-    additional_notes = models.TextField(blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    title = models.CharField(max_length=200)
+    description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, default='pending', choices=STATUS_CHOICES)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True, null=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-created_at']
     
     def __str__(self):
-        return f"Order #{self.id} - {self.customer_name}"
+        return f"Order #{self.id} - {self.title}"
+    
+    def mark_completed(self):
+        self.status = 'delivered'
+        self.completed_at = timezone.now()
+        self.save()

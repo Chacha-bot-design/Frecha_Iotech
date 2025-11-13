@@ -1,151 +1,121 @@
-# store/views.py - COMPLETE VERSION
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, login, logout
-from rest_framework import viewsets, status
-from .models import ServiceProvider, DataBundle, RouterProduct, Order
-from .serializers import ServiceProviderSerializer, DataBundleSerializer, RouterProductSerializer, OrderSerializer
+from django.db.models import Q
+from .models import Order
+from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer
 
-# ============ PUBLIC ENDPOINTS ============
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def api_status(request):
-    """API status check"""
-    return Response({
-        "status": "API is running",
-        "service": "Frecha IoTech",
-        "features": ["PostgreSQL", "REST API", "Authentication"]
-    })
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def public_providers(request):
-    """Get active service providers"""
-    providers = ServiceProvider.objects.filter(is_active=True)
-    serializer = ServiceProviderSerializer(providers, many=True)
-    return Response(serializer.data)
-
-@api_view(['GET']) 
-@permission_classes([AllowAny])
-def public_bundles(request):
-    """Get all data bundles"""
-    bundles = DataBundle.objects.select_related('provider').all()
-    serializer = DataBundleSerializer(bundles, many=True)
-    return Response(serializer.data)
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def public_routers(request):
-    """Get all router products"""
-    routers = RouterProduct.objects.all()
-    serializer = RouterProductSerializer(routers, many=True)
-    return Response(serializer.data)
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def create_order(request):
-    """Create a new order"""
-    try:
-        print("📦 Creating order:", request.data)
-        
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            order = serializer.save()
-            return Response({
-                "success": True,
-                "message": "Order created successfully!",
-                "order_id": order.id,
-                "status": order.status
-            }, status=201)
-        
-        return Response({
-            "success": False,
-            "error": "Validation failed",
-            "details": serializer.errors
-        }, status=400)
-        
-    except Exception as e:
-        print(f"❌ Order error: {e}")
-        return Response({
-            "success": False,
-            "error": "Internal server error"
-        }, status=500)
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def provider_bundles(request, provider_id):
-    """Get bundles for a specific provider"""
-    bundles = DataBundle.objects.filter(provider_id=provider_id)
-    serializer = DataBundleSerializer(bundles, many=True)
-    return Response(serializer.data)
-
-# ============ AUTHENTICATION ENDPOINTS ============
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def user_login(request):
-    """User login endpoint"""
-    username = request.data.get('username')
-    password = request.data.get('password')
+# User Order ViewSet
+class OrderViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
     
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
-        login(request, user)
-        return Response({
-            "success": True,
-            "message": "Login successful",
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            # Admin can see all orders
+            return Order.objects.all()
+        else:
+            # Users can only see their own orders
+            return Order.objects.filter(user=user)
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return OrderCreateSerializer
+        elif self.action in ['update', 'partial_update']:
+            if self.request.user.is_staff:
+                return OrderUpdateSerializer
+            # Regular users cannot update orders
+            return OrderSerializer
+        return OrderSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+    
+    @action(detail=False, methods=['get'])
+    def my_orders(self, request):
+        """Get current user's orders"""
+        orders = Order.objects.filter(user=request.user)
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def status_counts(self, request):
+        """Get count of orders by status for current user"""
+        if request.user.is_staff:
+            # Admin sees all counts
+            counts = {
+                'total': Order.objects.count(),
+                'pending': Order.objects.filter(status='pending').count(),
+                'confirmed': Order.objects.filter(status='confirmed').count(),
+                'processing': Order.objects.filter(status='processing').count(),
+                'shipped': Order.objects.filter(status='shipped').count(),
+                'delivered': Order.objects.filter(status='delivered').count(),
             }
-        })
-    else:
-        return Response({
-            "success": False,
-            "message": "Invalid credentials"
-        }, status=401)
+        else:
+            # User sees only their counts
+            counts = {
+                'total': Order.objects.filter(user=request.user).count(),
+                'pending': Order.objects.filter(user=request.user, status='pending').count(),
+                'confirmed': Order.objects.filter(user=request.user, status='confirmed').count(),
+                'processing': Order.objects.filter(user=request.user, status='processing').count(),
+                'shipped': Order.objects.filter(user=request.user, status='shipped').count(),
+                'delivered': Order.objects.filter(user=request.user, status='delivered').count(),
+            }
+        return Response(counts)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    def mark_delivered(self, request, pk=None):
+        """Admin action to mark order as delivered"""
+        order = self.get_object()
+        order.mark_completed()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def user_logout(request):
-    """User logout endpoint"""
-    logout(request)
-    return Response({
-        "success": True,
-        "message": "Logout successful"
-    })
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def current_user(request):
-    """Get current user info"""
-    return Response({
-        "success": True,
-        "user": {
-            "id": request.user.id,
-            "username": request.user.username,
-            "email": request.user.email
-        }
-    })
-
-# ============ ADMIN VIEWSETS ============
-class AdminServiceProviderViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    queryset = ServiceProvider.objects.all()
-    serializer_class = ServiceProviderSerializer
-
-class AdminDataBundleViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    queryset = DataBundle.objects.all()
-    serializer_class = DataBundleSerializer
-
-class AdminRouterProductViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    queryset = RouterProduct.objects.all()
-    serializer_class = RouterProductSerializer
-
+# Admin Order ViewSet (for your existing admin routes)
 class AdminOrderViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return OrderUpdateSerializer
+        return OrderSerializer
+    
+    @action(detail=True, methods=['post'])
+    def mark_processing(self, request, pk=None):
+        order = self.get_object()
+        order.status = 'processing'
+        order.save()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def mark_shipped(self, request, pk=None):
+        order = self.get_object()
+        order.status = 'shipped'
+        order.save()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def mark_delivered(self, request, pk=None):
+        order = self.get_object()
+        order.mark_completed()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+
+# Public order creation (for your existing public route)
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def create_order(request):
+    """
+    Public endpoint for creating orders (no authentication required)
+    """
+    serializer = OrderCreateSerializer(data=request.data)
+    if serializer.is_valid():
+        # For public orders, you might want to handle user differently
+        # For now, we'll create without user or use a default user
+        order = serializer.save()
+        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
