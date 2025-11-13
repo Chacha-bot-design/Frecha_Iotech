@@ -34,6 +34,9 @@ class RouterProductSerializer(serializers.ModelSerializer):
         return value
 
 class OrderSerializer(serializers.ModelSerializer):
+    # Explicitly define to ensure it's included
+    product_id = serializers.IntegerField()
+    
     class Meta:
         model = Order
         fields = [
@@ -50,13 +53,7 @@ class OrderSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'status', 'created_at']
     
-    def validate_service_type(self, value):
-        valid_types = ['bundle', 'router']
-        if value not in valid_types:
-            raise serializers.ValidationError(f"Service type must be one of: {', '.join(valid_types)}")
-        return value
-    
     def validate_product_id(self, value):
-        if value <= 0:
-            raise serializers.ValidationError("Product ID must be a positive number")
+        if value is None or value <= 0:
+            raise serializers.ValidationError("Valid product ID is required")
         return value
