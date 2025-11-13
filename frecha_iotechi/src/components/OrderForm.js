@@ -16,47 +16,36 @@ const OrderForm = ({ providers, bundles, routers }) => {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Safe array fallbacks to prevent errors
   const safeProviders = Array.isArray(providers) ? providers : [];
   const safeRouters = Array.isArray(routers) ? routers : [];
 
-  // Debug: Log when component receives props
   useEffect(() => {
     console.log('=== ORDERFORM DEBUG ===');
-    console.log('Providers received:', providers);
-    console.log('Safe providers:', safeProviders);
-    console.log('Safe providers length:', safeProviders.length);
+    console.log('Providers:', safeProviders);
+    console.log('Routers:', safeRouters);
     console.log('Selected provider:', selectedProvider);
     console.log('Filtered bundles:', filteredBundles);
     console.log('Form data:', formData);
     console.log('======================');
-  }, [providers, selectedProvider, filteredBundles, formData]);
+  }, [providers, routers, selectedProvider, filteredBundles, formData]);
 
   const handleProviderChange = async (e) => {
     const providerId = e.target.value;
-    console.log('Provider changed to:', providerId);
-    
     setSelectedProvider(providerId);
-    
+
     // Reset product_id when provider changes
     setFormData(prev => ({
       ...prev,
       product_id: ''
     }));
-    
+
     if (providerId) {
       try {
-        console.log('Fetching bundles for provider:', providerId);
         const response = await getBundlesByProvider(providerId);
-        console.log('Bundles API response:', response);
-        
-        // Safe array check for API response
         const bundlesData = Array.isArray(response?.data) ? response.data : [];
-        console.log('Bundles data received:', bundlesData);
         setFilteredBundles(bundlesData);
       } catch (error) {
         console.error('Error fetching bundles:', error);
-        console.error('Error details:', error.response);
         setFilteredBundles([]);
         setMessage('Error loading bundles. Please try again.');
       }
@@ -67,21 +56,26 @@ const OrderForm = ({ providers, bundles, routers }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log('Input changed:', name, value);
-    
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: value
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    console.log('Submitting form:', formData);
 
     try {
-      await createOrder(formData);
+      // ✅ Ensure product_id is a number, or null if empty
+      const submissionData = {
+        ...formData,
+        product_id: formData.product_id ? Number(formData.product_id) : null
+      };
+
+      console.log('Submitting to API:', submissionData);
+
+      await createOrder(submissionData);
       setMessage('Order placed successfully!');
 
       // Reset form
@@ -98,13 +92,10 @@ const OrderForm = ({ providers, bundles, routers }) => {
       setFilteredBundles([]);
     } catch (error) {
       console.error('Order error:', error);
-
       let errorMessage = 'Error placing order. Please try again.';
 
       if (error?.response?.data) {
         const data = error.response.data;
-        console.error('Error response data:', data);
-
         if (typeof data === 'string') {
           errorMessage = data;
         } else if (typeof data === 'object') {
@@ -126,8 +117,6 @@ const OrderForm = ({ providers, bundles, routers }) => {
     <section className="order-section" id="order">
       <div className="container">
         <h2 className="section-title">Place Your Order</h2>
-        
-        
         <div className="order-form">
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -141,7 +130,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <input
@@ -153,7 +142,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="phone">Phone Number</label>
               <input
@@ -165,7 +154,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="service_type">Service Type</label>
               <select
@@ -180,7 +169,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
                 <option value="router">Router</option>
               </select>
             </div>
-            
+
             {formData.service_type === 'bundle' && (
               <>
                 <div className="form-group">
@@ -199,7 +188,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
                     ))}
                   </select>
                 </div>
-                
+
                 {selectedProvider && (
                   <div className="form-group">
                     <label htmlFor="product_id">Select Bundle</label>
@@ -217,14 +206,16 @@ const OrderForm = ({ providers, bundles, routers }) => {
                         </option>
                       ))}
                     </select>
-                    {filteredBundles.length === 0 && selectedProvider && (
-                      <p style={{color: '#666', fontSize: '14px'}}>No bundles available for this provider</p>
+                    {filteredBundles.length === 0 && (
+                      <p style={{ color: '#666', fontSize: '14px' }}>
+                        No bundles available for this provider
+                      </p>
                     )}
                   </div>
                 )}
               </>
             )}
-            
+
             {formData.service_type === 'router' && (
               <div className="form-group">
                 <label htmlFor="product_id">Select Router</label>
@@ -244,7 +235,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
                 </select>
               </div>
             )}
-            
+
             <div className="form-group">
               <label htmlFor="package_details">Package Details</label>
               <input
@@ -256,7 +247,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
                 placeholder="E.g., 10GB monthly bundle"
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="additional_notes">Additional Notes</label>
               <textarea
@@ -268,16 +259,13 @@ const OrderForm = ({ providers, bundles, routers }) => {
                 placeholder="Any special requirements"
               ></textarea>
             </div>
+
             <center>
-            <button 
-              type="submit" 
-              className="btn"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Processing...' : 'Submit Order'}
-            </button>
+              <button type="submit" className="btn" disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : 'Submit Order'}
+              </button>
             </center>
-            
+
             {message && <div className="message">{message}</div>}
           </form>
         </div>
