@@ -1,24 +1,13 @@
-# store/serializers.py - UPDATED with Product
+# store/serializers.py - FIXED
 from rest_framework import serializers
-from .models import ServiceProvider, DataBundle, RouterProduct, Order, Product  # ✅ Now Product exists
-
-class ProductSerializer(serializers.ModelSerializer):
-    provider_name = serializers.CharField(source='provider.name', read_only=True)
-    
-    class Meta:
-        model = Product
-        fields = [
-            'id', 'name', 'product_type', 'price', 'description', 
-            'is_active', 'provider', 'provider_name', 'data_amount', 
-            'validity', 'color', 'image', 'specifications', 'created_at'
-        ]
+from .models import ServiceProvider, DataBundle, RouterProduct, Order
 
 class ServiceProviderSerializer(serializers.ModelSerializer):
     bundle_count = serializers.SerializerMethodField()
     
     class Meta:
         model = ServiceProvider
-        fields = ['id', 'name', 'is_active', 'bundle_count']
+        fields = ['id', 'name', 'description', 'logo', 'color', 'is_active', 'bundle_count']
     
     def get_bundle_count(self, obj):
         return obj.bundles.count()
@@ -28,7 +17,7 @@ class DataBundleSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = DataBundle
-        fields = ['id', 'name', 'provider', 'provider_name', 'price', 'data_amount']
+        fields = ['id', 'name', 'description', 'price', 'provider', 'provider_name', 'data_amount', 'validity']
     
     def validate_price(self, value):
         if value <= 0:
@@ -38,7 +27,7 @@ class DataBundleSerializer(serializers.ModelSerializer):
 class RouterProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = RouterProduct
-        fields = ['id', 'name', 'price']
+        fields = ['id', 'name', 'description', 'price', 'color', 'image', 'specifications']
     
     def validate_price(self, value):
         if value <= 0:
@@ -46,8 +35,7 @@ class RouterProductSerializer(serializers.ModelSerializer):
         return value
 
 class OrderSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    product_price = serializers.DecimalField(source='product.price', read_only=True, max_digits=10, decimal_places=2)
+    product_id = serializers.IntegerField()
     
     class Meta:
         model = Order
@@ -57,12 +45,15 @@ class OrderSerializer(serializers.ModelSerializer):
             'email',
             'phone', 
             'service_type', 
-            'product',  # ✅ Now it's a ForeignKey
-            'product_name',  # ✅ Read-only field
-            'product_price', # ✅ Read-only field
+            'product_id',
             'package_details',
             'additional_notes',
             'status', 
             'created_at'
         ]
-        read_only_fields = ['id', 'status', 'created_at', 'product_name', 'product_price']
+        read_only_fields = ['id', 'status', 'created_at']
+    
+    def validate_product_id(self, value):
+        if value is None or value <= 0:
+            raise serializers.ValidationError("Valid product ID is required")
+        return value

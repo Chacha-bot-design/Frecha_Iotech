@@ -11,80 +11,43 @@ from .serializers import ServiceProviderSerializer, DataBundleSerializer, Router
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def api_status(request):
-    try:
-        return Response({
-            "status": "API is running",
-            "database_status": "Connected",
-            "total_providers": ServiceProvider.objects.count(),
-            "total_bundles": DataBundle.objects.count(),
-            "total_routers": RouterProduct.objects.count(),
-            "total_orders": Order.objects.count(),
-            "authenticated": request.user.is_authenticated
-        })
-    except Exception as e:
-        return Response({
-            "status": "API is running",
-            "database_status": f"Error: {str(e)}",
-            "authenticated": request.user.is_authenticated
-        })
+    """API status check"""
+    return Response({
+        "status": "API is running",
+        "service": "Frecha IoTech",
+        "features": ["PostgreSQL", "REST API", "Authentication"]
+    })
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def public_providers(request):
     """Get active service providers"""
-    try:
-        providers = ServiceProvider.objects.filter(is_active=True)
-        serializer = ServiceProviderSerializer(providers, many=True)
-        return Response(serializer.data)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    providers = ServiceProvider.objects.filter(is_active=True)
+    serializer = ServiceProviderSerializer(providers, many=True)
+    return Response(serializer.data)
 
 @api_view(['GET']) 
 @permission_classes([AllowAny])
 def public_bundles(request):
-    """Get all data bundles with provider information"""
-    try:
-        bundles = DataBundle.objects.select_related('provider').all()
-        serializer = DataBundleSerializer(bundles, many=True)
-        return Response(serializer.data)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    """Get all data bundles"""
+    bundles = DataBundle.objects.select_related('provider').all()
+    serializer = DataBundleSerializer(bundles, many=True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def public_routers(request):
     """Get all router products"""
-    try:
-        routers = RouterProduct.objects.all()
-        serializer = RouterProductSerializer(routers, many=True)
-        return Response(serializer.data)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    routers = RouterProduct.objects.all()
+    serializer = RouterProductSerializer(routers, many=True)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_order(request):
     """Create a new order"""
     try:
-        print("📦 Received data:", request.data)
-        
-        # Validate required fields
-        required_fields = ['customer_name', 'email', 'phone', 'service_type', 'product_id']
-        for field in required_fields:
-            if not request.data.get(field):
-                return Response({
-                    "success": False,
-                    "error": f"Missing required field: {field}"
-                }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Ensure product_id is a number
-        try:
-            product_id = int(request.data['product_id'])
-        except (ValueError, TypeError):
-            return Response({
-                "success": False,
-                "error": "Invalid product ID format"
-            }, status=status.HTTP_400_BAD_REQUEST)
+        print("📦 Creating order:", request.data)
         
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
@@ -94,36 +57,34 @@ def create_order(request):
                 "message": "Order created successfully!",
                 "order_id": order.id,
                 "status": order.status
-            }, status=status.HTTP_201_CREATED)
+            }, status=201)
         
         return Response({
             "success": False,
             "error": "Validation failed",
             "details": serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+        }, status=400)
         
     except Exception as e:
-        print(f"❌ Order creation error: {str(e)}")
+        print(f"❌ Order error: {e}")
         return Response({
             "success": False,
             "error": "Internal server error"
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        }, status=500)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def provider_bundles(request, provider_id):
     """Get bundles for a specific provider"""
-    try:
-        bundles = DataBundle.objects.filter(provider_id=provider_id)
-        serializer = DataBundleSerializer(bundles, many=True)
-        return Response(serializer.data)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    bundles = DataBundle.objects.filter(provider_id=provider_id)
+    serializer = DataBundleSerializer(bundles, many=True)
+    return Response(serializer.data)
 
 # ============ AUTHENTICATION ENDPOINTS ============
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def user_login(request):
+    """User login endpoint"""
     username = request.data.get('username')
     password = request.data.get('password')
     
@@ -131,6 +92,7 @@ def user_login(request):
     if user is not None:
         login(request, user)
         return Response({
+            "success": True,
             "message": "Login successful",
             "user": {
                 "id": user.id,
@@ -139,18 +101,27 @@ def user_login(request):
             }
         })
     else:
-        return Response({"message": "Invalid credentials"}, status=401)
+        return Response({
+            "success": False,
+            "message": "Invalid credentials"
+        }, status=401)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def user_logout(request):
+    """User logout endpoint"""
     logout(request)
-    return Response({"message": "Logout successful"})
+    return Response({
+        "success": True,
+        "message": "Logout successful"
+    })
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
+    """Get current user info"""
     return Response({
+        "success": True,
         "user": {
             "id": request.user.id,
             "username": request.user.username,
@@ -158,7 +129,7 @@ def current_user(request):
         }
     })
 
-# ============ PROTECTED ENDPOINTS (Admin only) ============
+# ============ ADMIN VIEWSETS ============
 class AdminServiceProviderViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = ServiceProvider.objects.all()
