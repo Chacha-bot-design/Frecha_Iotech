@@ -3,10 +3,12 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q
-from .models import Order  # Add other models as needed
-from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer  # Add other serializers
+from django.utils import timezone  # ADD THIS IMPORT
+from .models import Order
+from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer
 
-# Your existing Order ViewSets (keep these)
+# ============ EXISTING ORDER VIEWSETS ============
+
 class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
@@ -90,20 +92,23 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
         serializer = OrderSerializer(order)
         return Response(serializer.data)
 
-# Add these missing ViewSets as simple placeholders
+# ============ MISSING VIEWSETS (NON-DUPLICATE) ============
+
 class AdminServiceProviderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
-    # Using Order as placeholder - replace with actual ServiceProvider when ready
     queryset = Order.objects.none()  
     serializer_class = OrderSerializer
 
 class AdminDataBundleViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
-    # Using Order as placeholder - replace with actual DataBundle when ready
     queryset = Order.objects.none()  
     serializer_class = OrderSerializer
 
-# Add other missing ViewSets as needed
+class AdminRouterProductViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAdminUser]
+    queryset = Order.objects.none()
+    serializer_class = OrderSerializer
+
 class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     queryset = Order.objects.none()
@@ -124,6 +129,13 @@ class DataBundleViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.none()
     serializer_class = OrderSerializer
 
+class RouterProductViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    queryset = Order.objects.none()
+    serializer_class = OrderSerializer
+
+# ============ FUNCTION-BASED VIEWS ============
+
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def create_order(request):
@@ -133,9 +145,6 @@ def create_order(request):
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Add to your store/views.py
-
-# Public API views (function-based)
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def api_status(request):
@@ -144,34 +153,35 @@ def api_status(request):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_providers(request):
-    return Response([])  # Empty array for now
+    return Response([])
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_bundles(request):
-    return Response([])  # Empty array for now
+    return Response([])
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_routers(request):
-    return Response([])  # Empty array for now
+    return Response([])
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def provider_bundles(request, provider_id):
-    return Response([])  # Empty array for now
+    return Response([])
 
-# Authentication views
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def user_login(request):
     return Response({'error': 'Authentication not implemented yet'}, status=501)
 
 @api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
 def user_logout(request):
     return Response({'message': 'Logged out successfully'})
 
 @api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
 def current_user(request):
     if request.user.is_authenticated:
         return Response({
