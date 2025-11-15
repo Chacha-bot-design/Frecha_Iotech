@@ -14,17 +14,26 @@ router.register(r'routers', views.RouterProductViewSet, basename='router')
 router.register(r'admin/routers', views.AdminRouterProductViewSet, basename='admin-router')
 
 urlpatterns = [
+    # API routes
     path('api/', include(router.urls)),
     
-    # Public API endpoints (matching what your frontend expects)
+    # Public endpoints (exactly matching what your frontend expects)
     path('api/public/providers/', views.public_providers, name='public-providers'),
     path('api/public/bundles/', views.public_bundles, name='public-bundles'),
     path('api/public/routers/', views.public_routers, name='public-routers'),
     
-    # Additional endpoints
+    # Other endpoints
     path('api/status/', views.api_status, name='api-status'),
     path('api/all-services/', views.all_services, name='all-services'),
     path('api/providers/<int:provider_id>/bundles/', views.provider_bundles, name='provider-bundles'),
     path('api/create-order/', views.create_order, name='create-order'),
     path('api/current-user/', views.current_user, name='current-user'),
 ]
+
+# Add this to debug URL patterns
+def show_urls(request):
+    from django.urls import get_resolver
+    urls = []
+    for pattern in get_resolver().url_patterns:
+        urls.append(str(pattern))
+    return HttpResponse('<br>'.join(urls))
