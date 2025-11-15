@@ -4,9 +4,9 @@ from .models import ServiceProvider, RouterProduct, DataBundle, Order
 
 @admin.register(ServiceProvider)
 class ServiceProviderAdmin(admin.ModelAdmin):
-    list_display = ['name', 'contact_email', 'phone_number', 'is_active', 'created_at']
+    list_display = ['name',  'is_active', 'created_at']
     list_filter = ['is_active', 'created_at']
-    search_fields = ['name', 'contact_email']
+    search_fields = ['name']
     list_editable = ['is_active']
 
 @admin.register(RouterProduct)

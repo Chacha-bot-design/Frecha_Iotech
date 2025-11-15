@@ -6,9 +6,6 @@ from django.utils import timezone
 class ServiceProvider(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    contact_email = models.EmailField()
-    phone_number = models.CharField(max_length=20, blank=True)
-    website = models.URLField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
