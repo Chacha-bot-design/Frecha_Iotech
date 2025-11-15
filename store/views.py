@@ -132,3 +132,51 @@ def create_order(request):
         order = serializer.save()
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Add to your store/views.py
+
+# Public API views (function-based)
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def api_status(request):
+    return Response({'status': 'API is running', 'timestamp': timezone.now()})
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def public_providers(request):
+    return Response([])  # Empty array for now
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def public_bundles(request):
+    return Response([])  # Empty array for now
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def public_routers(request):
+    return Response([])  # Empty array for now
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def provider_bundles(request, provider_id):
+    return Response([])  # Empty array for now
+
+# Authentication views
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def user_login(request):
+    return Response({'error': 'Authentication not implemented yet'}, status=501)
+
+@api_view(['POST'])
+def user_logout(request):
+    return Response({'message': 'Logged out successfully'})
+
+@api_view(['GET'])
+def current_user(request):
+    if request.user.is_authenticated:
+        return Response({
+            'username': request.user.username,
+            'email': request.user.email,
+            'is_staff': request.user.is_staff
+        })
+    return Response({'error': 'Not authenticated'}, status=401)
