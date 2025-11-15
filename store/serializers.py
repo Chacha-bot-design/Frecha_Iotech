@@ -1,12 +1,32 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Order
-from .models import Order, ServiceProvider
+from .models import Order, ServiceProvider, DataBundle, RouterProduct
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email']
+
+class ServiceProviderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceProvider
+        fields = '__all__'
+
+class DataBundleSerializer(serializers.ModelSerializer):
+    provider_name = serializers.CharField(source='provider.name', read_only=True)
+    
+    class Meta:
+        model = DataBundle
+        fields = ['id', 'name', 'provider', 'provider_name', 'price', 
+                 'data_volume', 'validity_days', 'is_active', 'created_at']
+        read_only_fields = ['created_at']
+
+class RouterProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RouterProduct
+        fields = ['id', 'name', 'price', 'description', 'is_available', 
+                 'created_at', 'image']
+        read_only_fields = ['created_at']
 
 class OrderSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -28,10 +48,3 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['status', 'admin_notes', 'tracking_number']
-
-        
-class ServiceProviderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ServiceProvider
-        fields = '__all__'
-        read_only_fields = ['user', 'created_at', 'updated_at']
