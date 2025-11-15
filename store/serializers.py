@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Order
+from .models import Order, ServiceProvider
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,3 +28,10 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['status', 'admin_notes', 'tracking_number']
+
+        
+class ServiceProviderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceProvider
+        fields = '__all__'
+        read_only_fields = ['user', 'created_at', 'updated_at']
