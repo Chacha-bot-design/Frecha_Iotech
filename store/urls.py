@@ -15,11 +15,15 @@ router.register(r'admin/routers', views.AdminRouterProductViewSet, basename='adm
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('api/status/', views.api_status, name='api-status'),
-    path('api/all-services/', views.all_services, name='all-services'),
+    
+    # Public API endpoints (matching what your frontend expects)
     path('api/public/providers/', views.public_providers, name='public-providers'),
     path('api/public/bundles/', views.public_bundles, name='public-bundles'),
     path('api/public/routers/', views.public_routers, name='public-routers'),
+    
+    # Additional endpoints
+    path('api/status/', views.api_status, name='api-status'),
+    path('api/all-services/', views.all_services, name='all-services'),
     path('api/providers/<int:provider_id>/bundles/', views.provider_bundles, name='provider-bundles'),
     path('api/create-order/', views.create_order, name='create-order'),
     path('api/current-user/', views.current_user, name='current-user'),
