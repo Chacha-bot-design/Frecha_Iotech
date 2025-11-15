@@ -1,11 +1,12 @@
+# store/views.py
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q
-from .models import Order, ServiceProvider
-from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer, ServiceProviderSerializer
+from .models import Order  # Add other models as needed
+from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer  # Add other serializers
 
-# User Order ViewSet
+# Your existing Order ViewSets (keep these)
 class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
@@ -56,7 +57,6 @@ class OrderViewSet(viewsets.ModelViewSet):
             }
         return Response(counts)
 
-# Admin Order ViewSet
 class AdminOrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
     queryset = Order.objects.all()
@@ -90,13 +90,40 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
         serializer = OrderSerializer(order)
         return Response(serializer.data)
 
-# Add this missing ViewSet
+# Add these missing ViewSets as simple placeholders
 class AdminServiceProviderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
-    queryset = ServiceProvider.objects.all()
-    serializer_class = ServiceProviderSerializer
+    # Using Order as placeholder - replace with actual ServiceProvider when ready
+    queryset = Order.objects.none()  
+    serializer_class = OrderSerializer
 
-# Public order creation
+class AdminDataBundleViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAdminUser]
+    # Using Order as placeholder - replace with actual DataBundle when ready
+    queryset = Order.objects.none()  
+    serializer_class = OrderSerializer
+
+# Add other missing ViewSets as needed
+class ProductViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    queryset = Order.objects.none()
+    serializer_class = OrderSerializer
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    queryset = Order.objects.none()
+    serializer_class = OrderSerializer
+
+class ServiceProviderViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    queryset = Order.objects.none()
+    serializer_class = OrderSerializer
+
+class DataBundleViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    queryset = Order.objects.none()
+    serializer_class = OrderSerializer
+
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def create_order(request):
