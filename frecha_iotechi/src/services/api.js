@@ -33,10 +33,10 @@ api.interceptors.response.use(
 );
 
 // ✅ CORRECT PUBLIC ROUTES
-export const getProviders = () => api.get('/api/public/providers/');
-export const getBundles = () => api.get('/api/public/bundles/');
-export const getRouters = () => api.get('/api/public/routers/');
-export const createOrder = (orderData) => api.post('/api/public/orders/create/', orderData);
+export const getProviders = () => api.get('/api/providers/');
+export const getBundles = () => api.get('/api/bundles/');
+export const getRouters = () => api.get('/api/routers/');
+export const createOrder = (orderData) => api.post('/api/orders/create/', orderData);
 
 // ✅ CORRECT BUNDLES BY PROVIDER ROUTE
 export const getBundlesByProvider = (providerId) => 
