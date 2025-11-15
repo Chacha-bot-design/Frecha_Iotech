@@ -3,9 +3,9 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q
-from django.utils import timezone  # ADD THIS IMPORT
-from .models import Order
-from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer
+from django.utils import timezone
+from .models import Order, ServiceProvider  # Make sure ServiceProvider is imported
+from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer, ServiceProviderSerializer  # Make sure ServiceProviderSerializer is imported
 
 # ============ EXISTING ORDER VIEWSETS ============
 
@@ -92,12 +92,65 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
         serializer = OrderSerializer(order)
         return Response(serializer.data)
 
-# ============ MISSING VIEWSETS (NON-DUPLICATE) ============
+# ============ SERVICE PROVIDER VIEWSETS ============
+
+class ServiceProviderViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for service providers (public access)
+    """
+    permission_classes = [permissions.AllowAny]
+    queryset = ServiceProvider.objects.all() if hasattr(ServiceProvider, 'objects') else ServiceProvider.objects.none()
+    serializer_class = ServiceProviderSerializer
+    
+    def get_queryset(self):
+        try:
+            return ServiceProvider.objects.all()
+        except:
+            return ServiceProvider.objects.none()
+    
+    @action(detail=True, methods=['get'])
+    def bundles(self, request, pk=None):
+        """Get bundles for a specific provider"""
+        provider = self.get_object()
+        # You can add bundle logic here when you create Bundle model
+        return Response({
+            'provider': provider.name if hasattr(provider, 'name') else f"Provider {pk}",
+            'bundles': []
+        })
 
 class AdminServiceProviderViewSet(viewsets.ModelViewSet):
+    """
+    Admin ViewSet for managing service providers
+    """
     permission_classes = [permissions.IsAdminUser]
-    queryset = Order.objects.none()  
-    serializer_class = OrderSerializer
+    queryset = ServiceProvider.objects.all() if hasattr(ServiceProvider, 'objects') else ServiceProvider.objects.none()
+    serializer_class = ServiceProviderSerializer
+    
+    def get_queryset(self):
+        try:
+            return ServiceProvider.objects.all()
+        except:
+            return ServiceProvider.objects.none()
+    
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        """Activate a service provider"""
+        provider = self.get_object()
+        if hasattr(provider, 'is_active'):
+            provider.is_active = True
+            provider.save()
+        return Response({'status': 'provider activated'})
+    
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk=None):
+        """Deactivate a service provider"""
+        provider = self.get_object()
+        if hasattr(provider, 'is_active'):
+            provider.is_active = False
+            provider.save()
+        return Response({'status': 'provider deactivated'})
+
+# ============ OTHER MISSING VIEWSETS ============
 
 class AdminDataBundleViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
@@ -115,11 +168,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
-    queryset = Order.objects.none()
-    serializer_class = OrderSerializer
-
-class ServiceProviderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     queryset = Order.objects.none()
     serializer_class = OrderSerializer
@@ -153,7 +201,13 @@ def api_status(request):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_providers(request):
-    return Response([])
+    """Public endpoint to get all service providers"""
+    try:
+        providers = ServiceProvider.objects.all()
+        serializer = ServiceProviderSerializer(providers, many=True)
+        return Response(serializer.data)
+    except:
+        return Response([])
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
@@ -168,7 +222,18 @@ def public_routers(request):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def provider_bundles(request, provider_id):
-    return Response([])
+    """Get bundles for a specific provider"""
+    try:
+        provider = ServiceProvider.objects.get(id=provider_id)
+        # Return empty bundles for now - you can add actual bundles later
+        return Response({
+            'provider': ServiceProviderSerializer(provider).data,
+            'bundles': []
+        })
+    except ServiceProvider.DoesNotExist:
+        return Response({'error': 'Provider not found'}, status=404)
+    except:
+        return Response({'bundles': []})
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
