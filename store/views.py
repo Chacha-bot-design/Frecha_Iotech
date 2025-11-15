@@ -4,10 +4,13 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q
 from django.utils import timezone
-from .models import Order, ServiceProvider  # Make sure ServiceProvider is imported
-from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer, ServiceProviderSerializer  # Make sure ServiceProviderSerializer is imported
+from .models import Order, ServiceProvider, DataBundle, RouterProduct
+from .serializers import (
+    OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer, 
+    ServiceProviderSerializer, DataBundleSerializer, RouterProductSerializer
+)
 
-# ============ EXISTING ORDER VIEWSETS ============
+# ============ ORDER VIEWSETS ============
 
 class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -99,23 +102,18 @@ class ServiceProviderViewSet(viewsets.ModelViewSet):
     ViewSet for service providers (public access)
     """
     permission_classes = [permissions.AllowAny]
-    queryset = ServiceProvider.objects.all() if hasattr(ServiceProvider, 'objects') else ServiceProvider.objects.none()
+    queryset = ServiceProvider.objects.filter(is_active=True)
     serializer_class = ServiceProviderSerializer
-    
-    def get_queryset(self):
-        try:
-            return ServiceProvider.objects.all()
-        except:
-            return ServiceProvider.objects.none()
     
     @action(detail=True, methods=['get'])
     def bundles(self, request, pk=None):
         """Get bundles for a specific provider"""
         provider = self.get_object()
-        # You can add bundle logic here when you create Bundle model
+        bundles = DataBundle.objects.filter(provider=provider, is_active=True)
+        serializer = DataBundleSerializer(bundles, many=True)
         return Response({
-            'provider': provider.name if hasattr(provider, 'name') else f"Provider {pk}",
-            'bundles': []
+            'provider': ServiceProviderSerializer(provider).data,
+            'bundles': serializer.data
         })
 
 class AdminServiceProviderViewSet(viewsets.ModelViewSet):
@@ -123,135 +121,182 @@ class AdminServiceProviderViewSet(viewsets.ModelViewSet):
     Admin ViewSet for managing service providers
     """
     permission_classes = [permissions.IsAdminUser]
-    queryset = ServiceProvider.objects.all() if hasattr(ServiceProvider, 'objects') else ServiceProvider.objects.none()
+    queryset = ServiceProvider.objects.all()
     serializer_class = ServiceProviderSerializer
-    
-    def get_queryset(self):
-        try:
-            return ServiceProvider.objects.all()
-        except:
-            return ServiceProvider.objects.none()
     
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         """Activate a service provider"""
         provider = self.get_object()
-        if hasattr(provider, 'is_active'):
-            provider.is_active = True
-            provider.save()
+        provider.is_active = True
+        provider.save()
         return Response({'status': 'provider activated'})
     
     @action(detail=True, methods=['post'])
     def deactivate(self, request, pk=None):
         """Deactivate a service provider"""
         provider = self.get_object()
-        if hasattr(provider, 'is_active'):
-            provider.is_active = False
-            provider.save()
+        provider.is_active = False
+        provider.save()
         return Response({'status': 'provider deactivated'})
 
-# ============ OTHER MISSING VIEWSETS ============
-
-class AdminDataBundleViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAdminUser]
-    queryset = Order.objects.none()  
-    serializer_class = OrderSerializer
-
-class AdminRouterProductViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAdminUser]
-    queryset = Order.objects.none()
-    serializer_class = OrderSerializer
-
-class ProductViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
-    queryset = Order.objects.none()
-    serializer_class = OrderSerializer
-
-class CategoryViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
-    queryset = Order.objects.none()
-    serializer_class = OrderSerializer
+# ============ DATA BUNDLE VIEWSETS ============
 
 class DataBundleViewSet(viewsets.ModelViewSet):
+    """
+    Public ViewSet for data bundles
+    """
     permission_classes = [permissions.AllowAny]
-    queryset = Order.objects.none()
-    serializer_class = OrderSerializer
+    queryset = DataBundle.objects.filter(is_active=True)
+    serializer_class = DataBundleSerializer
+    
+    def get_queryset(self):
+        queryset = DataBundle.objects.filter(is_active=True)
+        provider_id = self.request.query_params.get('provider')
+        if provider_id:
+            queryset = queryset.filter(provider_id=provider_id)
+        return queryset
+
+class AdminDataBundleViewSet(viewsets.ModelViewSet):
+    """
+    Admin ViewSet for managing data bundles
+    """
+    permission_classes = [permissions.IsAdminUser]
+    queryset = DataBundle.objects.all()
+    serializer_class = DataBundleSerializer
+    
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        """Activate a data bundle"""
+        bundle = self.get_object()
+        bundle.is_active = True
+        bundle.save()
+        return Response({'status': 'bundle activated'})
+    
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk=None):
+        """Deactivate a data bundle"""
+        bundle = self.get_object()
+        bundle.is_active = False
+        bundle.save()
+        return Response({'status': 'bundle deactivated'})
+
+# ============ ROUTER PRODUCT VIEWSETS ============
 
 class RouterProductViewSet(viewsets.ModelViewSet):
+    """
+    Public ViewSet for router products
+    """
     permission_classes = [permissions.AllowAny]
-    queryset = Order.objects.none()
-    serializer_class = OrderSerializer
+    queryset = RouterProduct.objects.filter(is_available=True)
+    serializer_class = RouterProductSerializer
+
+class AdminRouterProductViewSet(viewsets.ModelViewSet):
+    """
+    Admin ViewSet for managing router products
+    """
+    permission_classes = [permissions.IsAdminUser]
+    queryset = RouterProduct.objects.all()
+    serializer_class = RouterProductSerializer
+    
+    @action(detail=True, methods=['post'])
+    def make_available(self, request, pk=None):
+        """Make a router product available"""
+        router = self.get_object()
+        router.is_available = True
+        router.save()
+        return Response({'status': 'router made available'})
+    
+    @action(detail=True, methods=['post'])
+    def make_unavailable(self, request, pk=None):
+        """Make a router product unavailable"""
+        router = self.get_object()
+        router.is_available = False
+        router.save()
+        return Response({'status': 'router made unavailable'})
 
 # ============ FUNCTION-BASED VIEWS ============
-
-@api_view(['POST'])
-@permission_classes([permissions.AllowAny])
-def create_order(request):
-    serializer = OrderCreateSerializer(data=request.data)
-    if serializer.is_valid():
-        order = serializer.save()
-        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def api_status(request):
-    return Response({'status': 'API is running', 'timestamp': timezone.now()})
+    """API status endpoint"""
+    return Response({
+        'status': 'API is running', 
+        'timestamp': timezone.now(),
+        'services_available': True
+    })
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_providers(request):
-    """Public endpoint to get all service providers"""
-    try:
-        providers = ServiceProvider.objects.all()
-        serializer = ServiceProviderSerializer(providers, many=True)
-        return Response(serializer.data)
-    except:
-        return Response([])
+    """Public endpoint to get all active service providers"""
+    providers = ServiceProvider.objects.filter(is_active=True)
+    serializer = ServiceProviderSerializer(providers, many=True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_bundles(request):
-    return Response([])
+    """Public endpoint to get all active data bundles"""
+    bundles = DataBundle.objects.filter(is_active=True).select_related('provider')
+    serializer = DataBundleSerializer(bundles, many=True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_routers(request):
-    return Response([])
+    """Public endpoint to get all available router products"""
+    routers = RouterProduct.objects.filter(is_available=True)
+    serializer = RouterProductSerializer(routers, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def all_services(request):
+    """Get all services in one endpoint"""
+    providers = ServiceProvider.objects.filter(is_active=True)
+    bundles = DataBundle.objects.filter(is_active=True).select_related('provider')
+    routers = RouterProduct.objects.filter(is_available=True)
+    
+    return Response({
+        'providers': ServiceProviderSerializer(providers, many=True).data,
+        'bundles': DataBundleSerializer(bundles, many=True).data,
+        'routers': RouterProductSerializer(routers, many=True).data
+    })
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def provider_bundles(request, provider_id):
     """Get bundles for a specific provider"""
     try:
-        provider = ServiceProvider.objects.get(id=provider_id)
-        # Return empty bundles for now - you can add actual bundles later
+        provider = ServiceProvider.objects.get(id=provider_id, is_active=True)
+        bundles = DataBundle.objects.filter(provider=provider, is_active=True)
+        
         return Response({
             'provider': ServiceProviderSerializer(provider).data,
-            'bundles': []
+            'bundles': DataBundleSerializer(bundles, many=True).data
         })
     except ServiceProvider.DoesNotExist:
         return Response({'error': 'Provider not found'}, status=404)
-    except:
-        return Response({'bundles': []})
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
-def user_login(request):
-    return Response({'error': 'Authentication not implemented yet'}, status=501)
-
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def user_logout(request):
-    return Response({'message': 'Logged out successfully'})
+def create_order(request):
+    """Create a new order"""
+    serializer = OrderCreateSerializer(data=request.data)
+    if serializer.is_valid():
+        # In a real implementation, you'd handle user association
+        order = serializer.save()
+        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def current_user(request):
-    if request.user.is_authenticated:
-        return Response({
-            'username': request.user.username,
-            'email': request.user.email,
-            'is_staff': request.user.is_staff
-        })
-    return Response({'error': 'Not authenticated'}, status=401)
+    """Get current user info"""
+    return Response({
+        'username': request.user.username,
+        'email': request.user.email,
+        'is_staff': request.user.is_staff
+    })
