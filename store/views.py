@@ -2,8 +2,8 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q
-from .models import Order
-from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer
+from .models import Order, ServiceProvider
+from .serializers import OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer, ServiceProviderSerializer
 
 # User Order ViewSet
 class OrderViewSet(viewsets.ModelViewSet):
@@ -12,10 +12,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
-            # Admin can see all orders
             return Order.objects.all()
         else:
-            # Users can only see their own orders
             return Order.objects.filter(user=user)
     
     def get_serializer_class(self):
@@ -24,7 +22,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         elif self.action in ['update', 'partial_update']:
             if self.request.user.is_staff:
                 return OrderUpdateSerializer
-            # Regular users cannot update orders
             return OrderSerializer
         return OrderSerializer
     
@@ -33,16 +30,13 @@ class OrderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def my_orders(self, request):
-        """Get current user's orders"""
         orders = Order.objects.filter(user=request.user)
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def status_counts(self, request):
-        """Get count of orders by status for current user"""
         if request.user.is_staff:
-            # Admin sees all counts
             counts = {
                 'total': Order.objects.count(),
                 'pending': Order.objects.filter(status='pending').count(),
@@ -52,7 +46,6 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'delivered': Order.objects.filter(status='delivered').count(),
             }
         else:
-            # User sees only their counts
             counts = {
                 'total': Order.objects.filter(user=request.user).count(),
                 'pending': Order.objects.filter(user=request.user, status='pending').count(),
@@ -62,16 +55,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'delivered': Order.objects.filter(user=request.user, status='delivered').count(),
             }
         return Response(counts)
-    
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
-    def mark_delivered(self, request, pk=None):
-        """Admin action to mark order as delivered"""
-        order = self.get_object()
-        order.mark_completed()
-        serializer = OrderSerializer(order)
-        return Response(serializer.data)
 
-# Admin Order ViewSet (for your existing admin routes)
+# Admin Order ViewSet
 class AdminOrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
     queryset = Order.objects.all()
@@ -105,17 +90,18 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
         serializer = OrderSerializer(order)
         return Response(serializer.data)
 
-# Public order creation (for your existing public route)
+# Add this missing ViewSet
+class AdminServiceProviderViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAdminUser]
+    queryset = ServiceProvider.objects.all()
+    serializer_class = ServiceProviderSerializer
+
+# Public order creation
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def create_order(request):
-    """
-    Public endpoint for creating orders (no authentication required)
-    """
     serializer = OrderCreateSerializer(data=request.data)
     if serializer.is_valid():
-        # For public orders, you might want to handle user differently
-        # For now, we'll create without user or use a default user
         order = serializer.save()
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
