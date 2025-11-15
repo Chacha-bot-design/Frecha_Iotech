@@ -102,3 +102,52 @@ print("🚀 FULL FEATURES CONFIGURATION LOADED")
 print(f"   Database: {DATABASES['default']['ENGINE']}")
 print(f"   Debug: {DEBUG}")
 print(f"   Images: Enabled (Pillow 10.4.0)")
+
+
+# ===== ADD THESE TO YOUR EXISTING SETTINGS =====
+
+# CSRF & Security
+CSRF_TRUSTED_ORIGINS = [
+    'https://frecha-iotech.onrender.com',
+    'https://frecha-iotechi.onrender.com',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Security headers for Render
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = not DEBUG
+
+# CORS specific settings
+CORS_ALLOWED_ORIGINS = [
+    "https://frecha-iotech.onrender.com",
+    "https://frecha-iotechi.onrender.com",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
+# Authentication
+LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = '/admin/'
+LOGOUT_REDIRECT_URL = '/admin/'
+
+# Static files additional config
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# Whitenoise
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_MANIFEST_STRICT = False
+
+print("🔐 SECURITY & CORS CONFIGURATION UPDATED")
+print(f"   CSRF Trusted Origins: {len(CSRF_TRUSTED_ORIGINS)} configured")
+print(f"   CORS Allowed Origins: {len(CORS_ALLOWED_ORIGINS)} configured")
