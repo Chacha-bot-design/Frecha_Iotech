@@ -188,8 +188,23 @@ class RouterProductViewSet(viewsets.ModelViewSet):
     Public ViewSet for router products
     """
     permission_classes = [permissions.AllowAny]
-    queryset = RouterProduct.objects.filter(is_available=True)
     serializer_class = RouterProductSerializer
+    
+    def get_queryset(self):
+        try:
+            return RouterProduct.objects.filter(is_available=True)
+        except Exception as e:
+            print(f"Error in RouterProductViewSet: {e}")
+            return RouterProduct.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        try:
+            return super().list(request, *args, **kwargs)
+        except Exception as e:
+            return Response(
+                {'error': 'Failed to fetch routers', 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class AdminRouterProductViewSet(viewsets.ModelViewSet):
     """
@@ -300,43 +315,3 @@ def current_user(request):
         'email': request.user.email,
         'is_staff': request.user.is_staff
     })
-
-# ADD THESE FUNCTIONS TO YOUR EXISTING store/views.py
-
-@api_view(['GET'])
-@permission_classes([permissions.AllowAny])
-def api_status(request):
-    return Response({'status': 'API is running', 'timestamp': timezone.now()})
-
-@api_view(['GET'])
-@permission_classes([permissions.AllowAny])
-def all_services(request):
-    """Get all services in one endpoint"""
-    try:
-        providers = ServiceProvider.objects.filter(is_active=True)
-        bundles = DataBundle.objects.filter(is_active=True).select_related('provider')
-        routers = RouterProduct.objects.filter(is_available=True)
-        
-        return Response({
-            'providers': ServiceProviderSerializer(providers, many=True).data,
-            'bundles': DataBundleSerializer(bundles, many=True).data,
-            'routers': RouterProductSerializer(routers, many=True).data
-        })
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
-
-# Make sure these ViewSets exist in your views.py
-class ServiceProviderViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
-    queryset = ServiceProvider.objects.filter(is_active=True)
-    serializer_class = ServiceProviderSerializer
-
-class DataBundleViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
-    queryset = DataBundle.objects.filter(is_active=True)
-    serializer_class = DataBundleSerializer
-
-class RouterProductViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
-    queryset = RouterProduct.objects.filter(is_available=True)
-    serializer_class = RouterProductSerializer
