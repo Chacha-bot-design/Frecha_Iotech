@@ -374,10 +374,12 @@ def provider_bundles(request, provider_id):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+# ... your other views above ...
+
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def create_order(request):
-    """Create a new order (public access)"""
+    """Create a new order with automatic tracking"""
     try:
         # Prepare order data from frontend
         order_data = {
@@ -394,7 +396,25 @@ def create_order(request):
         if serializer.is_valid():
             # For public orders, don't associate with user
             order = serializer.save()
-            return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+            
+            # ✅ AUTOMATICALLY CREATE TRACKING FOR EVERY ORDER
+            tracking, created = OrderTracking.objects.get_or_create(
+                order=order,
+                defaults={
+                    'customer_email': order.customer_email,
+                    'customer_phone': order.customer_phone
+                }
+            )
+            
+            # Add initial status update
+            tracking.add_status_update('order_created', 'Order placed successfully')
+            
+            return Response({
+                'success': True,
+                'order': OrderSerializer(order).data,
+                'tracking_number': tracking.tracking_number,
+                'message': 'Order created successfully! Use your tracking number to track your order.'
+            }, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
@@ -403,6 +423,8 @@ def create_order(request):
             {'error': 'Failed to create order', 'details': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+# ... your other views below (user_login, admin_order_stats, etc.) ...
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -666,3 +688,4 @@ def update_order_tracking(request, order_id):
         
     except Order.DoesNotExist:
         return Response({'error': 'Order not found'}, status=404)
+   

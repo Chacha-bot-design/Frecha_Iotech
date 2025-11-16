@@ -1,76 +1,72 @@
-// services/api.js - CORRECTED VERSION
+// services/api.js
 import axios from 'axios';
 
+const API_BASE_URL = 'https://frecha-iotech.onrender.com';
+
 const api = axios.create({
-  baseURL: 'https://frecha-iotech.onrender.com',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: API_BASE_URL,
+  timeout: 10000,
 });
 
-// Add request interceptor to log outgoing requests
+// Request interceptor for logging
 api.interceptors.request.use(
   (config) => {
-    console.log(`🔄 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    console.log(`🔄 API Call: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
-    console.error('❌ Request Error:', error);
+    console.error('❌ API Request Error:', error);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor to log responses
+// Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
-    console.log(`✅ API Success: ${response.config.url}`, response.status);
+    console.log(`✅ API Success: ${response.status} ${response.config.url}`);
     return response;
   },
   (error) => {
-    console.error(`❌ API Error: ${error.config?.url}`, error.response?.status, error.response?.data);
+    console.error('❌ API Response Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
 
-// ✅ CORRECT PUBLIC ROUTES
-export const getProviders = () => api.get('/api/providers/');
-export const getBundles = () => api.get('/api/bundles/');
-export const getRouters = () => api.get('/api/routers/');
-export const createOrder = (orderData) => api.post('/api/orders/', orderData);
+// Order functions
+export const createOrder = async (orderData) => {
+  const response = await api.post('/api/orders/create/', orderData);
+  return response.data;
+};
 
-// ✅ CORRECTED BUNDLES BY PROVIDER ROUTE - FIXED THIS LINE
-export const getBundlesByProvider = (providerId) => 
-  api.get(`/api/providers/${providerId}/bundles/`); // Removed '/public/' from the URL
+export const getBundlesByProvider = async (providerId) => {
+  const response = await api.get(`/api/providers/${providerId}/bundles/`);
+  return response.data;
+};
 
-// Test function
-export const testAllEndpoints = async () => {
-  try {
-    console.log('🧪 Testing all API endpoints...');
-    
-    // Test providers
-    const providers = await getProviders();
-    console.log('✅ Providers endpoint:', providers.data);
-    
-    // Test bundles
-    const bundles = await getBundles();
-    console.log('✅ Bundles endpoint:', bundles.data);
-    
-    // Test routers
-    const routers = await getRouters();
-    console.log('✅ Routers endpoint:', routers.data);
-    
-    // Test bundles by provider
-    if (providers.data && providers.data.length > 0) {
-      const providerBundles = await getBundlesByProvider(providers.data[0].id);
-      console.log('✅ Bundles by provider endpoint:', providerBundles.data);
-    }
-    
-    console.log('🎉 All API endpoints are working!');
-    return true;
-  } catch (error) {
-    console.error('❌ API test failed:', error);
-    return false;
-  }
+export const trackOrder = async (trackingNumber) => {
+  const response = await api.get(`/api/tracking/${trackingNumber}/`);
+  return response.data;
+};
+
+// Data fetching functions
+export const getProviders = async () => {
+  const response = await api.get('/api/public/providers/');
+  return response.data;
+};
+
+export const getBundles = async () => {
+  const response = await api.get('/api/public/bundles/');
+  return response.data;
+};
+
+export const getRouters = async () => {
+  const response = await api.get('/api/public/routers/');
+  return response.data;
+};
+
+export const getAllServices = async () => {
+  const response = await api.get('/api/all-services/');
+  return response.data;
 };
 
 export default api;
