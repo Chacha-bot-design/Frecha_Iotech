@@ -23,6 +23,12 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home_view),
     path('', include('store.urls')),  # Include store URLs
+    
+    #========== USER AUTHENTICATION ==========#
+    path('signup/', store_views.signup, name='signup'),
+    path('login/', auth_views.LoginView.as_view(template_name='store/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
+    path('profile/', store_views.profile, name='profile'),
 
      
 ]
