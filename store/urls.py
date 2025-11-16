@@ -55,6 +55,10 @@ urlpatterns = [
     path('api/admin/orders/<int:order_id>/update-status/', views.admin_update_order_status, name='admin-update-order-status'),
     path('api/admin/orders/<int:order_id>/send-notification/', views.admin_send_notification, name='admin-send-notification'),
     path('api/admin/orders/search/', views.admin_search_orders, name='admin-search-orders'),
-
+    
+    # Order Tracking URLs
+path('api/tracking/signup/', views.guest_order_signup, name='tracking-signup'),
+path('api/tracking/<str:tracking_number>/', views.track_order, name='track-order'),
+path('api/admin/orders/<int:order_id>/update-tracking/', views.update_order_tracking, name='update-tracking'),
      
 ]

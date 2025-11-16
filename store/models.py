@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+import uuid
 
 class ServiceProvider(models.Model):
     name = models.CharField(max_length=255)
@@ -54,7 +55,6 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
     
-    # ✅ CORRECT: Define SERVICE_TYPES at the top of the class
     SERVICE_TYPES = [
         ('bundle', 'Data Bundle'),
         ('router', 'Router Product'),
@@ -157,3 +157,34 @@ class Order(models.Model):
         except Exception as e:
             print(f"❌ Notification failed: {e}")
             return False
+
+# ✅ CORRECT: OrderTracking is a separate class, not inside Order
+class OrderTracking(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='tracking')
+    tracking_number = models.CharField(max_length=100, unique=True)
+    customer_email = models.EmailField()
+    customer_phone = models.CharField(max_length=20, blank=True)
+    signup_date = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    
+    # Tracking events
+    status_updates = models.JSONField(default=list)  # Store status history
+    
+    def __str__(self):
+        return f"Tracking #{self.tracking_number} - {self.order.customer_name}"
+
+    def generate_tracking_number(self):
+        return f"FRE{str(uuid.uuid4())[:8].upper()}"
+    
+    def save(self, *args, **kwargs):
+        if not self.tracking_number:
+            self.tracking_number = self.generate_tracking_number()
+        super().save(*args, **kwargs)
+    
+    def add_status_update(self, status, notes=""):
+        self.status_updates.append({
+            'status': status,
+            'notes': notes,
+            'timestamp': timezone.now().isoformat()
+        })
+        self.save()

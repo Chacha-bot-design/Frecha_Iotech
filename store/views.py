@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth import authenticate, login, logout
-from .models import Order, ServiceProvider, DataBundle, RouterProduct
+from .models import Order, ServiceProvider, DataBundle, RouterProduct, OrderTracking  # ← ADD OrderTracking
 from .serializers import (
     OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer, 
     ServiceProviderSerializer, DataBundleSerializer, RouterProductSerializer
@@ -50,6 +50,7 @@ def login_view(request):
 @login_required
 def profile(request):
     return render(request, 'store/profile.html', {'user': request.user})
+
 # ============ ORDER VIEWSETS ============
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -448,8 +449,6 @@ def current_user(request):
         'is_authenticated': True
     })
 
-# store/views.py - ADD THESE ADMIN VIEWS
-
 # ============ ADMIN ORDER MANAGEMENT ============
 
 @api_view(['GET'])
@@ -465,8 +464,8 @@ def admin_order_stats(request):
             'completed_orders': Order.objects.filter(status='delivered').count(),
             'recent_orders': Order.objects.filter(created_at__gte=timezone.now() - timezone.timedelta(days=7)).count(),
             'status_breakdown': {
-                status: Order.objects.filter(status=status).count()
-                for status, _ in Order.STATUS_CHOICES
+                status_val: Order.objects.filter(status=status_val).count()
+                for status_val, _ in Order.STATUS_CHOICES
             }
         }
         
@@ -563,3 +562,107 @@ def admin_search_orders(request):
         
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+
+# ============ ORDER TRACKING VIEWS ============
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def guest_order_signup(request):
+    """Allow guests to sign up for order tracking without full registration"""
+    try:
+        order_id = request.data.get('order_id')
+        customer_email = request.data.get('customer_email')
+        customer_phone = request.data.get('customer_phone', '')
+        
+        # Find order by ID and verify customer email matches
+        order = Order.objects.get(
+            id=order_id,
+            customer_email=customer_email
+        )
+        
+        # Create or get tracking
+        tracking, created = OrderTracking.objects.get_or_create(
+            order=order,
+            defaults={
+                'customer_email': customer_email,
+                'customer_phone': customer_phone
+            }
+        )
+        
+        if created:
+            # Send welcome email with tracking info
+            tracking.add_status_update('registered', 'Customer signed up for tracking')
+            
+        return Response({
+            'success': True,
+            'tracking_number': tracking.tracking_number,
+            'order_status': order.status,
+            'customer_name': order.customer_name,
+            'message': 'Order tracking activated successfully'
+        })
+        
+    except Order.DoesNotExist:
+        return Response(
+            {'error': 'Order not found. Please check your order ID and email.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': 'Failed to activate tracking', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def track_order(request, tracking_number):
+    """Public endpoint to track order status"""
+    try:
+        tracking = OrderTracking.objects.get(
+            tracking_number=tracking_number,
+            is_active=True
+        )
+        order = tracking.order
+        
+        return Response({
+            'tracking_number': tracking.tracking_number,
+            'order_status': order.status,
+            'status_display': order.get_status_display(),
+            'customer_name': order.customer_name,
+            'product_details': order.product_details,
+            'order_date': order.created_at,
+            'status_updates': tracking.status_updates,
+            'estimated_delivery': order.estimated_delivery,
+            'customer_support_email': 'support@frechaiotech.com'
+        })
+        
+    except OrderTracking.DoesNotExist:
+        return Response(
+            {'error': 'Tracking number not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAdminUser])
+def update_order_tracking(request, order_id):
+    """Admin update order tracking status"""
+    try:
+        order = Order.objects.get(id=order_id)
+        new_status = request.data.get('status')
+        admin_notes = request.data.get('notes', '')
+        
+        # Update order status
+        order.status = new_status
+        order.save()
+        
+        # Add to tracking history
+        if hasattr(order, 'tracking'):
+            order.tracking.add_status_update(new_status, admin_notes)
+        
+        return Response({
+            'message': 'Order status updated',
+            'order_status': order.status,
+            'tracking_updates': order.tracking.status_updates if hasattr(order, 'tracking') else []
+        })
+        
+    except Order.DoesNotExist:
+        return Response({'error': 'Order not found'}, status=404)

@@ -52,5 +52,24 @@ function App() {
     </div>
   );
 }
+// App.jsx or main component
+function App() {
+    return (
+        <div className="App">
+            <header>
+                <h1>Frecha IoTech</h1>
+                <nav>
+                    <a href="/">Home</a>
+                    <a href="/track-order">Track Order</a>
+                    <a href="/signup-tracking">Sign Up for Tracking</a>
+                </nav>
+            </header>
+            
+            {/* Your existing routes */}
+            <Route path="/track-order" component={OrderTrackingLookup} />
+            <Route path="/signup-tracking" component={OrderTrackingSignup} />
+        </div>
+    );
+}
 
 export default App;
