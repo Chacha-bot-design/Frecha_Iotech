@@ -4,12 +4,14 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     # ViewSets
     ElectronicsDevicesViewSet,
+    DataPlanViewSet,
+    BundleViewSet,
     OrderViewSet,
     AdminOrderViewSet,
     ServiceProviderViewSet,
     AdminServiceProviderViewSet,
-    DataBundleViewSet,
-    AdminDataBundleViewSet,
+    AdminDataPlanViewSet,
+    AdminBundleViewSet,
     RouterProductViewSet,
     AdminRouterProductViewSet,
     
@@ -18,10 +20,10 @@ from .views import (
     electronics_stats,
     public_electronics,
     public_providers,
+    public_data_plans,
     public_bundles,
     public_routers,
     all_services,
-    provider_bundles,
     create_order,
     user_login,
     user_logout,
@@ -42,12 +44,14 @@ from .views import (
 
 router = DefaultRouter()
 router.register(r'electronics', ElectronicsDevicesViewSet, basename='electronics')
+router.register(r'data-plans', DataPlanViewSet, basename='data-plans')
+router.register(r'bundles', BundleViewSet, basename='bundles')
 router.register(r'orders', OrderViewSet, basename='orders')
 router.register(r'admin/orders', AdminOrderViewSet, basename='admin-orders')
 router.register(r'providers', ServiceProviderViewSet, basename='providers')
 router.register(r'admin/providers', AdminServiceProviderViewSet, basename='admin-providers')
-router.register(r'bundles', DataBundleViewSet, basename='bundles')
-router.register(r'admin/bundles', AdminDataBundleViewSet, basename='admin-bundles')
+router.register(r'admin/data-plans', AdminDataPlanViewSet, basename='admin-data-plans')
+router.register(r'admin/bundles', AdminBundleViewSet, basename='admin-bundles')
 router.register(r'routers', RouterProductViewSet, basename='routers')
 router.register(r'admin/routers', AdminRouterProductViewSet, basename='admin-routers')
 
@@ -60,10 +64,10 @@ urlpatterns = [
     path('api/electronics-stats/', electronics_stats, name='electronics_stats'),
     path('api/public-electronics/', public_electronics, name='public_electronics'),
     path('api/public-providers/', public_providers, name='public_providers'),
+    path('api/public-data-plans/', public_data_plans, name='public_data_plans'),
     path('api/public-bundles/', public_bundles, name='public_bundles'),
     path('api/public-routers/', public_routers, name='public_routers'),
     path('api/all-services/', all_services, name='all_services'),
-    path('api/provider/<int:provider_id>/bundles/', provider_bundles, name='provider_bundles'),
     
     # Order management
     path('api/create-order/', create_order, name='create_order'),

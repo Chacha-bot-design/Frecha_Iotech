@@ -2,7 +2,6 @@
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth import authenticate, login, logout
@@ -12,11 +11,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from datetime import timedelta
 
-from .models import Order, ServiceProvider, DataBundle, RouterProduct, OrderTracking, ElectronicsDevices
+from .models import Order, ServiceProvider, DataPlan, Bundle, RouterProduct, OrderTracking, ElectronicsDevices
 from .serializers import (
     OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer, 
-    ServiceProviderSerializer, DataBundleSerializer, RouterProductSerializer,
-    ElectronicsDevicesSerializer
+    ServiceProviderSerializer, DataPlanSerializer, BundleSerializer,
+    RouterProductSerializer, ElectronicsDevicesSerializer
 )
 
 # ============ TEMPLATE VIEWS ============
@@ -55,6 +54,142 @@ def login_view(request):
 def profile(request):
     return render(request, 'store/profile.html', {'user': request.user})
 
+# ============ DATA PLAN VIEWSETS ============
+
+class DataPlanViewSet(viewsets.ModelViewSet):
+    """
+    Public ViewSet for data plans
+    """
+    permission_classes = [permissions.AllowAny]
+    queryset = DataPlan.objects.filter(is_active=True)
+    serializer_class = DataPlanSerializer
+    
+    def get_queryset(self):
+        queryset = DataPlan.objects.filter(is_active=True)
+        provider_id = self.request.query_params.get('provider')
+        data_type = self.request.query_params.get('data_type')
+        network_type = self.request.query_params.get('network_type')
+        
+        if provider_id:
+            queryset = queryset.filter(provider_id=provider_id)
+        if data_type:
+            queryset = queryset.filter(data_type=data_type)
+        if network_type:
+            queryset = queryset.filter(network_type=network_type)
+            
+        return queryset
+
+    @action(detail=False, methods=['get'])
+    def data_types(self, request):
+        """Get all unique data types"""
+        data_types = DataPlan.objects.values_list('data_type', flat=True).distinct()
+        return Response({'data_types': list(data_types)})
+
+    @action(detail=False, methods=['get'])
+    def network_types(self, request):
+        """Get all unique network types"""
+        network_types = DataPlan.objects.values_list('network_type', flat=True).distinct()
+        return Response({'network_types': list(network_types)})
+
+class AdminDataPlanViewSet(viewsets.ModelViewSet):
+    """
+    Admin ViewSet for managing data plans
+    """
+    permission_classes = [permissions.IsAdminUser]
+    queryset = DataPlan.objects.all()
+    serializer_class = DataPlanSerializer
+    
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        """Activate a data plan"""
+        data_plan = self.get_object()
+        data_plan.is_active = True
+        data_plan.save()
+        return Response({'status': 'data plan activated'})
+    
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk=None):
+        """Deactivate a data plan"""
+        data_plan = self.get_object()
+        data_plan.is_active = False
+        data_plan.save()
+        return Response({'status': 'data plan deactivated'})
+
+# ============ BUNDLE VIEWSETS ============
+
+class BundleViewSet(viewsets.ModelViewSet):
+    """
+    Public ViewSet for bundles
+    """
+    permission_classes = [permissions.AllowAny]
+    queryset = Bundle.objects.filter(is_active=True)
+    serializer_class = BundleSerializer
+    
+    def get_queryset(self):
+        queryset = Bundle.objects.filter(is_active=True)
+        provider_id = self.request.query_params.get('provider')
+        bundle_type = self.request.query_params.get('bundle_type')
+        
+        if provider_id:
+            queryset = queryset.filter(provider_id=provider_id)
+        if bundle_type:
+            queryset = queryset.filter(bundle_type=bundle_type)
+            
+        return queryset
+
+    @action(detail=False, methods=['get'])
+    def featured(self, request):
+        """Get featured bundles"""
+        featured_bundles = Bundle.objects.filter(is_active=True, is_featured=True)
+        serializer = self.get_serializer(featured_bundles, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def bundle_types(self, request):
+        """Get all unique bundle types"""
+        bundle_types = Bundle.objects.values_list('bundle_type', flat=True).distinct()
+        return Response({'bundle_types': list(bundle_types)})
+
+class AdminBundleViewSet(viewsets.ModelViewSet):
+    """
+    Admin ViewSet for managing bundles
+    """
+    permission_classes = [permissions.IsAdminUser]
+    queryset = Bundle.objects.all()
+    serializer_class = BundleSerializer
+    
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        """Activate a bundle"""
+        bundle = self.get_object()
+        bundle.is_active = True
+        bundle.save()
+        return Response({'status': 'bundle activated'})
+    
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk=None):
+        """Deactivate a bundle"""
+        bundle = self.get_object()
+        bundle.is_active = False
+        bundle.save()
+        return Response({'status': 'bundle deactivated'})
+    
+    @action(detail=True, methods=['post'])
+    def feature(self, request, pk=None):
+        """Mark bundle as featured"""
+        bundle = self.get_object()
+        bundle.is_featured = True
+        bundle.save()
+        return Response({'status': 'bundle featured'})
+    
+    @action(detail=True, methods=['post'])
+    def unfeature(self, request, pk=None):
+        """Remove bundle from featured"""
+        bundle = self.get_object()
+        bundle.is_featured = False
+        bundle.save()
+        return Response({'status': 'bundle unfeatured'})
+
 # ============ ELECTRONICS DEVICES VIEWSET ============
 
 class ElectronicsDevicesViewSet(viewsets.ModelViewSet):
@@ -64,9 +199,8 @@ class ElectronicsDevicesViewSet(viewsets.ModelViewSet):
     queryset = ElectronicsDevices.objects.filter(is_available=True)
     serializer_class = ElectronicsDevicesSerializer
     permission_classes = [permissions.AllowAny]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description', 'specifications']
-    filterset_fields = ['is_available']
     ordering_fields = ['price', 'name', 'created_at']
     ordering = ['-created_at']
 
@@ -227,11 +361,22 @@ class ServiceProviderViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceProviderSerializer
     
     @action(detail=True, methods=['get'])
+    def data_plans(self, request, pk=None):
+        """Get data plans for a specific provider"""
+        provider = self.get_object()
+        data_plans = DataPlan.objects.filter(provider=provider, is_active=True)
+        serializer = DataPlanSerializer(data_plans, many=True)
+        return Response({
+            'provider': ServiceProviderSerializer(provider).data,
+            'data_plans': serializer.data
+        })
+    
+    @action(detail=True, methods=['get'])
     def bundles(self, request, pk=None):
         """Get bundles for a specific provider"""
         provider = self.get_object()
-        bundles = DataBundle.objects.filter(provider=provider, is_active=True)
-        serializer = DataBundleSerializer(bundles, many=True)
+        bundles = Bundle.objects.filter(provider=provider, is_active=True)
+        serializer = BundleSerializer(bundles, many=True)
         return Response({
             'provider': ServiceProviderSerializer(provider).data,
             'bundles': serializer.data
@@ -255,39 +400,6 @@ class AdminServiceProviderViewSet(viewsets.ModelViewSet):
         provider.is_active = False
         provider.save()
         return Response({'status': 'provider deactivated'})
-
-# ============ DATA BUNDLE VIEWSETS ============
-
-class DataBundleViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
-    queryset = DataBundle.objects.filter(is_active=True)
-    serializer_class = DataBundleSerializer
-    
-    def get_queryset(self):
-        queryset = DataBundle.objects.filter(is_active=True)
-        provider_id = self.request.query_params.get('provider')
-        if provider_id:
-            queryset = queryset.filter(provider_id=provider_id)
-        return queryset
-
-class AdminDataBundleViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAdminUser]
-    queryset = DataBundle.objects.all()
-    serializer_class = DataBundleSerializer
-    
-    @action(detail=True, methods=['post'])
-    def activate(self, request, pk=None):
-        bundle = self.get_object()
-        bundle.is_active = True
-        bundle.save()
-        return Response({'status': 'bundle activated'})
-    
-    @action(detail=True, methods=['post'])
-    def deactivate(self, request, pk=None):
-        bundle = self.get_object()
-        bundle.is_active = False
-        bundle.save()
-        return Response({'status': 'bundle deactivated'})
 
 # ============ ROUTER PRODUCT VIEWSETS ============
 
@@ -386,11 +498,25 @@ def public_providers(request):
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
-def public_bundles(request):
-    """Public endpoint to get all active data bundles"""
+def public_data_plans(request):
+    """Public endpoint to get all active data plans"""
     try:
-        bundles = DataBundle.objects.filter(is_active=True).select_related('provider')
-        serializer = DataBundleSerializer(bundles, many=True)
+        data_plans = DataPlan.objects.filter(is_active=True).select_related('provider')
+        serializer = DataPlanSerializer(data_plans, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response(
+            {'error': 'Failed to fetch data plans', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def public_bundles(request):
+    """Public endpoint to get all active bundles"""
+    try:
+        bundles = Bundle.objects.filter(is_active=True).select_related('provider')
+        serializer = BundleSerializer(bundles, many=True)
         return Response(serializer.data)
     except Exception as e:
         return Response(
@@ -418,39 +544,21 @@ def all_services(request):
     """Get all services in one endpoint"""
     try:
         providers = ServiceProvider.objects.filter(is_active=True)
-        bundles = DataBundle.objects.filter(is_active=True).select_related('provider')
+        data_plans = DataPlan.objects.filter(is_active=True).select_related('provider')
+        bundles = Bundle.objects.filter(is_active=True).select_related('provider')
         routers = RouterProduct.objects.filter(is_available=True)
         electronics = ElectronicsDevices.objects.filter(is_available=True)
         
         return Response({
             'providers': ServiceProviderSerializer(providers, many=True).data,
-            'bundles': DataBundleSerializer(bundles, many=True).data,
+            'data_plans': DataPlanSerializer(data_plans, many=True).data,
+            'bundles': BundleSerializer(bundles, many=True).data,
             'routers': RouterProductSerializer(routers, many=True).data,
             'electronics': ElectronicsDevicesSerializer(electronics, many=True).data
         })
     except Exception as e:
         return Response(
             {'error': 'Failed to fetch services', 'details': str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@api_view(['GET'])
-@permission_classes([permissions.AllowAny])
-def provider_bundles(request, provider_id):
-    """Get bundles for a specific provider"""
-    try:
-        provider = ServiceProvider.objects.get(id=provider_id, is_active=True)
-        bundles = DataBundle.objects.filter(provider=provider, is_active=True)
-        
-        return Response({
-            'provider': ServiceProviderSerializer(provider).data,
-            'bundles': DataBundleSerializer(bundles, many=True).data
-        })
-    except ServiceProvider.DoesNotExist:
-        return Response({'error': 'Provider not found'}, status=404)
-    except Exception as e:
-        return Response(
-            {'error': 'Failed to fetch provider bundles', 'details': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
