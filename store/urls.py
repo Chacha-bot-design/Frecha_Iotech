@@ -6,7 +6,7 @@ from . import views
 # Create router
 router = DefaultRouter()
 
-# Register viewsets - ONLY these for now
+# Register viewsets
 router.register(r'providers', views.ServiceProviderViewSet, basename='provider')
 router.register(r'bundles', views.DataBundleViewSet, basename='bundle')
 router.register(r'routers', views.RouterProductViewSet, basename='router')
@@ -19,7 +19,4 @@ urlpatterns = [
     # Simple test endpoints
     path('api/status/', views.api_status, name='api-status'),
     path('api/all-services/', views.all_services, name='all-services'),
-    
-    # Debug endpoint
-    path('api/debug/', views.debug_info, name='debug-info'),
 ]
