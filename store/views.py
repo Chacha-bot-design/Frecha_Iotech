@@ -4,6 +4,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q
 from django.utils import timezone
+from django.contrib.auth import authenticate, login, logout
 from .models import Order, ServiceProvider, DataBundle, RouterProduct
 from .serializers import (
     OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer, 
@@ -13,14 +14,17 @@ from .serializers import (
 # ============ ORDER VIEWSETS ============
 
 class OrderViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Changed to AllowAny for public order creation
     
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
-            return Order.objects.all()
+        if user.is_authenticated:
+            if user.is_staff:
+                return Order.objects.all()
+            else:
+                return Order.objects.filter(user=user)
         else:
-            return Order.objects.filter(user=user)
+            return Order.objects.none()  # Public users can't view orders
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -32,10 +36,16 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderSerializer
     
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # Only set user if authenticated, otherwise create public order
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save()  # Public order without user
     
     @action(detail=False, methods=['get'])
     def my_orders(self, request):
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
         orders = Order.objects.filter(user=request.user)
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
@@ -246,39 +256,63 @@ def api_status(request):
 @permission_classes([permissions.AllowAny])
 def public_providers(request):
     """Public endpoint to get all active service providers"""
-    providers = ServiceProvider.objects.filter(is_active=True)
-    serializer = ServiceProviderSerializer(providers, many=True)
-    return Response(serializer.data)
+    try:
+        providers = ServiceProvider.objects.filter(is_active=True)
+        serializer = ServiceProviderSerializer(providers, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response(
+            {'error': 'Failed to fetch providers', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_bundles(request):
     """Public endpoint to get all active data bundles"""
-    bundles = DataBundle.objects.filter(is_active=True).select_related('provider')
-    serializer = DataBundleSerializer(bundles, many=True)
-    return Response(serializer.data)
+    try:
+        bundles = DataBundle.objects.filter(is_active=True).select_related('provider')
+        serializer = DataBundleSerializer(bundles, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response(
+            {'error': 'Failed to fetch bundles', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_routers(request):
     """Public endpoint to get all available router products"""
-    routers = RouterProduct.objects.filter(is_available=True)
-    serializer = RouterProductSerializer(routers, many=True)
-    return Response(serializer.data)
+    try:
+        routers = RouterProduct.objects.filter(is_available=True)
+        serializer = RouterProductSerializer(routers, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response(
+            {'error': 'Failed to fetch routers', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def all_services(request):
     """Get all services in one endpoint"""
-    providers = ServiceProvider.objects.filter(is_active=True)
-    bundles = DataBundle.objects.filter(is_active=True).select_related('provider')
-    routers = RouterProduct.objects.filter(is_available=True)
-    
-    return Response({
-        'providers': ServiceProviderSerializer(providers, many=True).data,
-        'bundles': DataBundleSerializer(bundles, many=True).data,
-        'routers': RouterProductSerializer(routers, many=True).data
-    })
+    try:
+        providers = ServiceProvider.objects.filter(is_active=True)
+        bundles = DataBundle.objects.filter(is_active=True).select_related('provider')
+        routers = RouterProduct.objects.filter(is_available=True)
+        
+        return Response({
+            'providers': ServiceProviderSerializer(providers, many=True).data,
+            'bundles': DataBundleSerializer(bundles, many=True).data,
+            'routers': RouterProductSerializer(routers, many=True).data
+        })
+    except Exception as e:
+        return Response(
+            {'error': 'Failed to fetch services', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
@@ -294,24 +328,83 @@ def provider_bundles(request, provider_id):
         })
     except ServiceProvider.DoesNotExist:
         return Response({'error': 'Provider not found'}, status=404)
+    except Exception as e:
+        return Response(
+            {'error': 'Failed to fetch provider bundles', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def create_order(request):
-    """Create a new order"""
-    serializer = OrderCreateSerializer(data=request.data)
-    if serializer.is_valid():
-        # In a real implementation, you'd handle user association
-        order = serializer.save()
-        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    """Create a new order (public access)"""
+    try:
+        # Prepare order data from frontend
+        order_data = {
+            'customer_name': request.data.get('customer_name', ''),
+            'customer_email': request.data.get('customer_email', ''),
+            'customer_phone': request.data.get('customer_phone', ''),
+            'product_details': request.data.get('product_details', ''),
+            'quantity': request.data.get('quantity', 1),
+            'total_price': request.data.get('total_price', 0.00),
+            'notes': request.data.get('additional_notes', ''),
+        }
+        
+        serializer = OrderCreateSerializer(data=order_data)
+        if serializer.is_valid():
+            # For public orders, don't associate with user
+            order = serializer.save()
+            return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        return Response(
+            {'error': 'Failed to create order', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def user_login(request):
+    """User login endpoint"""
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    user = authenticate(request, username=username, password=password)
+    
+    if user is not None:
+        login(request, user)
+        return Response({
+            'message': 'Login successful',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'is_staff': user.is_staff
+            }
+        })
+    else:
+        return Response(
+            {'error': 'Invalid credentials'}, 
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def user_logout(request):
+    """User logout endpoint"""
+    logout(request)
+    return Response({'message': 'Logged out successfully'})
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def current_user(request):
     """Get current user info"""
     return Response({
+        'id': request.user.id,
         'username': request.user.username,
         'email': request.user.email,
-        'is_staff': request.user.is_staff
+        'is_staff': request.user.is_staff,
+        'is_authenticated': True
     })

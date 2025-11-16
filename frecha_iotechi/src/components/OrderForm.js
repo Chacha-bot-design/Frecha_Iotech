@@ -18,6 +18,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
 
   const safeProviders = Array.isArray(providers) ? providers : [];
   const safeRouters = Array.isArray(routers) ? routers : [];
+  const safeBundles = Array.isArray(bundles) ? bundles : [];
 
   useEffect(() => {
     console.log('=== ORDERFORM DEBUG ===');
@@ -28,55 +29,89 @@ const OrderForm = ({ providers, bundles, routers }) => {
     console.log('Form data:', formData);
     console.log('======================');
   }, [providers, routers, selectedProvider, filteredBundles, formData]);
+const handleProviderChange = async (e) => {
+  const providerId = e.target.value;
+  setSelectedProvider(providerId);
 
-  const handleProviderChange = async (e) => {
-    const providerId = e.target.value;
-    setSelectedProvider(providerId);
+  // Reset product_id when provider changes
+  setFormData(prev => ({
+    ...prev,
+    product_id: ''
+  }));
 
-    // Reset product_id when provider changes
-    setFormData(prev => ({
-      ...prev,
-      product_id: ''
-    }));
-
-    if (providerId) {
-      try {
-        const response = await getBundlesByProvider(providerId);
-        const bundlesData = Array.isArray(response?.data) ? response.data : [];
-        setFilteredBundles(bundlesData);
-      } catch (error) {
-        console.error('Error fetching bundles:', error);
-        setFilteredBundles([]);
-        setMessage('Error loading bundles. Please try again.');
+  if (providerId) {
+    try {
+      const response = await getBundlesByProvider(providerId);
+      
+      // ✅ CORRECTED: Extract bundles from the nested response structure
+      const bundlesData = Array.isArray(response?.data?.bundles) 
+        ? response.data.bundles 
+        : [];
+        
+      setFilteredBundles(bundlesData);
+      
+      if (bundlesData.length === 0) {
+        setMessage('No bundles available for this provider.');
+      } else {
+        setMessage('');
       }
-    } else {
+    } catch (error) {
+      console.error('Error fetching bundles:', error);
       setFilteredBundles([]);
+      setMessage('Error loading bundles. Please try again.');
     }
+  } else {
+    setFilteredBundles([]);
+    setMessage('');
+  }
+};
+  // Helper function to get product details
+  const getProductDetails = () => {
+    if (formData.service_type === 'router' && formData.product_id) {
+      const router = safeRouters.find(r => r.id === parseInt(formData.product_id));
+      return router ? `Router: ${router.name} - TZS ${router.price}` : 'Router selected';
+    } else if (formData.service_type === 'bundle' && formData.product_id) {
+      const bundle = [...safeBundles, ...filteredBundles].find(b => b.id === parseInt(formData.product_id));
+      return bundle ? `Bundle: ${bundle.name} - TZS ${bundle.price}` : 'Bundle selected';
+    }
+    return formData.package_details || 'No product details';
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  // Helper function to calculate total price
+  const getTotalPrice = () => {
+    if (formData.service_type === 'router' && formData.product_id) {
+      const router = safeRouters.find(r => r.id === parseInt(formData.product_id));
+      return router ? parseFloat(router.price) : 0.00;
+    } else if (formData.service_type === 'bundle' && formData.product_id) {
+      const bundle = [...safeBundles, ...filteredBundles].find(b => b.id === parseInt(formData.product_id));
+      return bundle ? parseFloat(bundle.price) : 0.00;
+    }
+    return 0.00;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setMessage('');
 
     try {
-      // ✅ Ensure product_id is a number, or null if empty
+      // ✅ CORRECTED: Prepare data in the format your backend expects
       const submissionData = {
-        ...formData,
-        product_id: formData.product_id ? Number(formData.product_id) : null
+        customer_name: formData.customer_name,
+        customer_email: formData.email,
+        customer_phone: formData.phone,
+        product_details: getProductDetails(),
+        quantity: 1,
+        total_price: getTotalPrice(),
+        notes: formData.additional_notes || ''
       };
 
       console.log('Submitting to API:', submissionData);
 
-      await createOrder(submissionData);
-      setMessage('Order placed successfully!');
+      const response = await createOrder(submissionData);
+      console.log('Order created successfully:', response);
+      
+      setMessage('Order placed successfully! We will contact you shortly.');
 
       // Reset form
       setFormData({
@@ -90,6 +125,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
       });
       setSelectedProvider('');
       setFilteredBundles([]);
+
     } catch (error) {
       console.error('Order error:', error);
       let errorMessage = 'Error placing order. Please try again.';
@@ -99,9 +135,14 @@ const OrderForm = ({ providers, bundles, routers }) => {
         if (typeof data === 'string') {
           errorMessage = data;
         } else if (typeof data === 'object') {
-          errorMessage = Object.values(data)
-            .flat()
-            .join(' | ');
+          // Handle validation errors
+          if (data.details) {
+            errorMessage = data.details;
+          } else {
+            errorMessage = Object.values(data)
+              .flat()
+              .join(' | ');
+          }
         }
       } else if (error?.message) {
         errorMessage = error.message;
@@ -237,7 +278,7 @@ const OrderForm = ({ providers, bundles, routers }) => {
             )}
 
             <div className="form-group">
-              <label htmlFor="package_details">Package Details</label>
+              <label htmlFor="package_details">Package Details (Optional)</label>
               <input
                 type="text"
                 id="package_details"
@@ -260,13 +301,42 @@ const OrderForm = ({ providers, bundles, routers }) => {
               ></textarea>
             </div>
 
+            {/* Display order summary */}
+            {(formData.product_id || formData.package_details) && (
+              <div className="order-summary" style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '5px',
+                marginBottom: '20px',
+                border: '1px solid #e9ecef'
+              }}>
+                <h4 style={{ margin: '0 0 10px 0' }}>Order Summary:</h4>
+                <p style={{ margin: '5px 0' }}><strong>Product:</strong> {getProductDetails()}</p>
+                <p style={{ margin: '5px 0' }}><strong>Total Price:</strong> TZS {getTotalPrice().toFixed(2)}</p>
+              </div>
+            )}
+
             <center>
               <button type="submit" className="btn" disabled={isSubmitting}>
                 {isSubmitting ? 'Processing...' : 'Submit Order'}
               </button>
             </center>
 
-            {message && <div className="message">{message}</div>}
+            {message && (
+              <div 
+                className="message" 
+                style={{
+                  marginTop: '20px',
+                  padding: '10px',
+                  borderRadius: '5px',
+                  backgroundColor: message.includes('success') ? '#d4edda' : '#f8d7da',
+                  color: message.includes('success') ? '#155724' : '#721c24',
+                  border: `1px solid ${message.includes('success') ? '#c3e6cb' : '#f5c6cb'}`
+                }}
+              >
+                {message}
+              </div>
+            )}
           </form>
         </div>
       </div>

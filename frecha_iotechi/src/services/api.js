@@ -1,4 +1,4 @@
-// services/api.js - COMPLETELY UPDATED
+// services/api.js - CORRECTED VERSION
 import axios from 'axios';
 
 const api = axios.create({
@@ -38,9 +38,9 @@ export const getBundles = () => api.get('/api/bundles/');
 export const getRouters = () => api.get('/api/routers/');
 export const createOrder = (orderData) => api.post('/api/orders/create/', orderData);
 
-// ✅ CORRECT BUNDLES BY PROVIDER ROUTE
+// ✅ CORRECTED BUNDLES BY PROVIDER ROUTE - FIXED THIS LINE
 export const getBundlesByProvider = (providerId) => 
-  api.get(`/api/public/providers/${providerId}/bundles/`);
+  api.get(`/api/providers/${providerId}/bundles/`); // Removed '/public/' from the URL
 
 // Test function
 export const testAllEndpoints = async () => {
@@ -72,3 +72,5 @@ export const testAllEndpoints = async () => {
     return false;
   }
 };
+
+export default api;
