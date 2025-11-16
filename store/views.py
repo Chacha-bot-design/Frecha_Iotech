@@ -408,3 +408,119 @@ def current_user(request):
         'is_staff': request.user.is_staff,
         'is_authenticated': True
     })
+
+# store/views.py - ADD THESE ADMIN VIEWS
+
+# ============ ADMIN ORDER MANAGEMENT ============
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAdminUser])
+def admin_order_stats(request):
+    """Get order statistics for admin dashboard"""
+    try:
+        from django.db.models import Count
+        
+        stats = {
+            'total_orders': Order.objects.count(),
+            'pending_orders': Order.objects.filter(status='pending').count(),
+            'completed_orders': Order.objects.filter(status='delivered').count(),
+            'recent_orders': Order.objects.filter(created_at__gte=timezone.now() - timezone.timedelta(days=7)).count(),
+            'status_breakdown': {
+                status: Order.objects.filter(status=status).count()
+                for status, _ in Order.STATUS_CHOICES
+            }
+        }
+        
+        return Response(stats)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAdminUser])
+def admin_update_order_status(request, order_id):
+    """Update order status and send notification"""
+    try:
+        order = Order.objects.get(id=order_id)
+        new_status = request.data.get('status')
+        admin_notes = request.data.get('admin_notes', '')
+        send_notification = request.data.get('send_notification', True)
+        notification_method = request.data.get('notification_method', 'email')
+        
+        if new_status not in dict(Order.STATUS_CHOICES):
+            return Response({'error': 'Invalid status'}, status=400)
+        
+        # Update order
+        order.status = new_status
+        if admin_notes:
+            order.admin_notes = admin_notes
+        
+        if new_status == 'delivered':
+            order.completed_at = timezone.now()
+        
+        order.save()
+        
+        # Send notification if requested
+        notification_sent = False
+        if send_notification:
+            message = request.data.get('custom_message') or f"Your order status has been updated to: {order.get_status_display()}"
+            notification_sent = order.send_notification(method=notification_method, message=message)
+        
+        return Response({
+            'message': 'Order updated successfully',
+            'order': OrderSerializer(order).data,
+            'notification_sent': notification_sent
+        })
+        
+    except Order.DoesNotExist:
+        return Response({'error': 'Order not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAdminUser])
+def admin_send_notification(request, order_id):
+    """Send custom notification to customer"""
+    try:
+        order = Order.objects.get(id=order_id)
+        message = request.data.get('message')
+        method = request.data.get('method', 'email')
+        
+        if not message:
+            return Response({'error': 'Message is required'}, status=400)
+        
+        success = order.send_notification(method=method, message=message)
+        
+        return Response({
+            'success': success,
+            'message': 'Notification sent successfully' if success else 'Notification failed'
+        })
+        
+    except Order.DoesNotExist:
+        return Response({'error': 'Order not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])  # Public for testing
+def admin_search_orders(request):
+    """Search orders by customer name, email, phone, or product"""
+    try:
+        query = request.GET.get('q', '')
+        
+        if not query:
+            orders = Order.objects.all().order_by('-created_at')[:50]  # Limit for performance
+        else:
+            orders = Order.objects.filter(
+                Q(customer_name__icontains=query) |
+                Q(customer_email__icontains=query) |
+                Q(customer_phone__icontains=query) |
+                Q(product_details__icontains=query)
+            ).order_by('-created_at')
+        
+        return Response({
+            'results': OrderSerializer(orders, many=True).data,
+            'count': orders.count()
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)

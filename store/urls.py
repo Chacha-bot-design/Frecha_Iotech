@@ -47,4 +47,11 @@ urlpatterns = [
     
     path('api/auth/login/', views.user_login, name='user-login'),
     path('api/auth/logout/', views.user_logout, name='user-logout'),
+
+     # ========== ADMIN ORDER MANAGEMENT ==========
+    path('api/admin/orders/stats/', views.admin_order_stats, name='admin-order-stats'),
+    path('api/admin/orders/<int:order_id>/update-status/', views.admin_update_order_status, name='admin-update-order-status'),
+    path('api/admin/orders/<int:order_id>/send-notification/', views.admin_send_notification, name='admin-send-notification'),
+    path('api/admin/orders/search/', views.admin_search_orders, name='admin-search-orders'),
+
 ]
