@@ -1,8 +1,8 @@
-# store/admin.py
 from django.contrib import admin
-from django.core.mail import send_mail
-from django.conf import settings
-from .models import ServiceProvider, RouterProduct, DataBundle, Order
+from .models import (
+    ServiceProvider, RouterProduct, DataPlan, Bundle, 
+    ElectronicsDevices, Order, OrderTracking
+)
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
@@ -165,28 +165,31 @@ class RouterProductAdmin(admin.ModelAdmin):
     )
     readonly_fields = ['created_at', 'updated_at']
 
-@admin.register(DataBundle)
-class DataBundleAdmin(admin.ModelAdmin):
-    list_display = ['name', 'provider', 'price', 'data_volume', 'validity_days', 'is_active']
-    list_filter = ['provider', 'is_active', 'created_at']
-    search_fields = ['name', 'description', 'provider__name']
+@admin.register(DataPlan)
+class DataPlanAdmin(admin.ModelAdmin):
+    list_display = ['name', 'provider', 'data_volume', 'validity_days', 'price', 'data_type', 'is_active']
+    list_filter = ['provider', 'data_type', 'network_type', 'is_active', 'created_at']
+    search_fields = ['name', 'description', 'data_volume']
     list_editable = ['price', 'is_active']
-    fieldsets = (
-        (None, {
-            'fields': ('name', 'provider', 'description')
-        }),
-        ('Bundle Details', {
-            'fields': ('price', 'data_volume', 'validity_days')
-        }),
-        ('Status', {
-            'fields': ('is_active',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
     readonly_fields = ['created_at', 'updated_at']
+
+@admin.register(Bundle)
+class BundleAdmin(admin.ModelAdmin):
+    list_display = ['name', 'provider', 'bundle_type', 'total_data_volume', 'total_price', 'discount_percentage', 'is_featured', 'is_active']
+    list_filter = ['provider', 'bundle_type', 'is_featured', 'is_active', 'created_at']
+    search_fields = ['name', 'description', 'total_data_volume']
+    list_editable = ['total_price', 'discount_percentage', 'is_featured', 'is_active']
+    filter_horizontal = ['data_plans']
+    readonly_fields = ['created_at', 'updated_at']
+
+@admin.register(ElectronicsDevices)
+class ElectronicsDevicesAdmin(admin.ModelAdmin):
+    list_display = ['name', 'category', 'price', 'stock_quantity', 'is_available', 'created_at']
+    list_filter = ['category', 'is_available', 'created_at']
+    search_fields = ['name', 'description', 'specifications']
+    list_editable = ['price', 'stock_quantity', 'is_available']
+    readonly_fields = ['created_at', 'updated_at']
+
 
 # Register the admin classes
 admin.site.register(Order, OrderAdmin)

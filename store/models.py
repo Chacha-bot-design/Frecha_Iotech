@@ -31,33 +31,123 @@ class RouterProduct(models.Model):
     def __str__(self):
         return self.name
 
-class DataBundle(models.Model):
+# ============ SEPARATED DATA MODELS ============
+
+class DataPlan(models.Model):
+    """Model for individual data plans"""
+    DATA_TYPES = [
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        ('special', 'Special Offer'),
+        ('night', 'Night Bundle'),
+        ('social', 'Social Media'),
+        ('youtube', 'YouTube'),
+        ('streaming', 'Streaming'),
+    ]
+    
+    NETWORK_TYPES = [
+        ('4g', '4G LTE'),
+        ('5g', '5G'),
+        ('3g', '3G'),
+        ('2g', '2G'),
+    ]
+    
     name = models.CharField(max_length=255)
-    provider = models.ForeignKey(ServiceProvider, on_delete=models.CASCADE, related_name='bundles')
+    provider = models.ForeignKey(ServiceProvider, on_delete=models.CASCADE, related_name='data_plans')
+    data_volume = models.CharField(max_length=50, help_text="e.g., 1GB, 500MB, Unlimited")
+    validity_days = models.IntegerField(default=1, help_text="Validity in days")
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    data_volume = models.CharField(max_length=50, default='1GB')
-    validity_days = models.IntegerField(default=30)
+    data_type = models.CharField(max_length=20, choices=DATA_TYPES, default='monthly')
+    network_type = models.CharField(max_length=10, choices=NETWORK_TYPES, default='4g')
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"{self.name} - {self.provider.name}"
+        return f"{self.name} - {self.provider.name} ({self.data_volume})"
+    
+    class Meta:
+        verbose_name = "Data Plan"
+        verbose_name_plural = "Data Plans"
+        ordering = ['provider', 'price']
 
-# ✅ FIXED: Proper indentation for ElectronicsDevices class
+class Bundle(models.Model):
+    """Model for bundled packages that can include multiple data plans"""
+    BUNDLE_TYPES = [
+        ('individual', 'Individual Bundle'),
+        ('family', 'Family Bundle'),
+        ('business', 'Business Bundle'),
+        ('student', 'Student Bundle'),
+        ('premium', 'Premium Bundle'),
+    ]
+    
+    name = models.CharField(max_length=255)
+    provider = models.ForeignKey(ServiceProvider, on_delete=models.CASCADE, related_name='bundles')
+    bundle_type = models.CharField(max_length=20, choices=BUNDLE_TYPES, default='individual')
+    data_plans = models.ManyToManyField(DataPlan, related_name='bundles', blank=True)
+    total_data_volume = models.CharField(max_length=50, help_text="Total data volume in bundle")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, help_text="Discount percentage")
+    description = models.TextField(blank=True)
+    features = models.JSONField(default=list, help_text="List of features included")
+    is_active = models.BooleanField(default=True)
+    is_featured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.name} - {self.provider.name}"
+    
+    def get_actual_price(self):
+        """Calculate price after discount"""
+        if self.discount_percentage > 0:
+            discount_amount = (self.total_price * self.discount_percentage) / 100
+            return self.total_price - discount_amount
+        return self.total_price
+    
+    class Meta:
+        verbose_name = "Bundle"
+        verbose_name_plural = "Bundles"
+        ordering = ['-is_featured', 'total_price']
+
+# ============ ELECTRONICS DEVICES ============
+
 class ElectronicsDevices(models.Model):
+    CATEGORY_CHOICES = [
+        ('laptops', 'Laptops'),
+        ('smartphones', 'Smartphones'),
+        ('tablets', 'Tablets'),
+        ('accessories', 'Accessories'),
+        ('gaming', 'Gaming Consoles'),
+        ('audio', 'Audio Equipment'),
+        ('cameras', 'Cameras'),
+        ('networking', 'Networking Devices'),
+        ('storage', 'Storage Devices'),
+        ('other', 'Other Electronics'),
+    ]
+    
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='other')
     specifications = models.TextField(blank=True)
     is_available = models.BooleanField(default=True)
     image = models.ImageField(upload_to='electronics/', blank=True, null=True)
+    stock_quantity = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.name
+    
+    class Meta:
+        verbose_name = "Electronics Device"
+        verbose_name_plural = "Electronics Devices"
+        ordering = ['-created_at']
+
+# ============ ORDER MODELS ============
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -70,8 +160,10 @@ class Order(models.Model):
     ]
     
     SERVICE_TYPES = [
-        ('bundle', 'Data Bundle'),
+        ('data_plan', 'Data Plan'),
+        ('bundle', 'Bundle Package'),
         ('router', 'Router Product'),
+        ('electronics', 'Electronics Device'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='orders')
@@ -82,10 +174,16 @@ class Order(models.Model):
     customer_phone = models.CharField(max_length=20)
     
     # Order details
-    service_type = models.CharField(max_length=20, choices=SERVICE_TYPES, default='bundle')
+    service_type = models.CharField(max_length=20, choices=SERVICE_TYPES, default='data_plan')
     product_details = models.TextField()
     quantity = models.PositiveIntegerField(default=1)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    
+    # References to specific products (optional)
+    data_plan = models.ForeignKey(DataPlan, on_delete=models.SET_NULL, null=True, blank=True)
+    bundle = models.ForeignKey(Bundle, on_delete=models.SET_NULL, null=True, blank=True)
+    router_product = models.ForeignKey(RouterProduct, on_delete=models.SET_NULL, null=True, blank=True)
+    electronics_device = models.ForeignKey(ElectronicsDevices, on_delete=models.SET_NULL, null=True, blank=True)
     
     # Status and tracking
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -131,7 +229,6 @@ class Order(models.Model):
         
         try:
             if method in ['email', 'both']:
-                # Send email notification
                 send_mail(
                     f'Order #{self.id} Update - Frecha Iotech',
                     f"""
@@ -157,7 +254,6 @@ class Order(models.Model):
                 )
             
             if method in ['sms', 'both']:
-                # SMS placeholder
                 sms_message = f"Frecha Iotech: {message}. Order #{self.id}"
                 print(f"📱 SMS would be sent to {self.customer_phone}: {sms_message}")
             
@@ -181,7 +277,7 @@ class OrderTracking(models.Model):
     is_active = models.BooleanField(default=True)
     
     # Tracking events
-    status_updates = models.JSONField(default=list)  # Store status history
+    status_updates = models.JSONField(default=list)
     
     def __str__(self):
         return f"Tracking #{self.tracking_number} - {self.order.customer_name}"
