@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './Header.module.css';
+import styles from './Header.css';
 import { useAuth } from './context/AuthContext';
 
 const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
