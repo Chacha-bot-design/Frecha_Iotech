@@ -13,32 +13,8 @@ def home_view(request):
         <li><a href="/api/bundles/">Bundles</a></li>
         <li><a href="/api/routers/">Routers</a></li>
         <li><a href="/api/all-services/">All Services</a></li>
-        <li><a href="/api/debug/">Debug Info</a></li>
         <li><a href="/admin/">Admin</a></li>
     </ul>
-    <script>
-        // Test all endpoints
-        async function testEndpoints() {
-            const endpoints = [
-                '/api/status/',
-                '/api/providers/',
-                '/api/bundles/',
-                '/api/routers/',
-                '/api/all-services/',
-                '/api/debug/'
-            ];
-            
-            for (const endpoint of endpoints) {
-                try {
-                    const response = await fetch(endpoint);
-                    console.log(endpoint, response.status, response.ok);
-                } catch (error) {
-                    console.error(endpoint, 'FAILED:', error);
-                }
-            }
-        }
-        testEndpoints();
-    </script>
     """)
 
 urlpatterns = [
