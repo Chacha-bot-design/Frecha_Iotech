@@ -15,8 +15,6 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "https://frecha-iotechi.onrender.com",
     "https://frecha-iotech.onrender.com",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
     '.onrender.com',
 ]
 CORS_ALLOW_CREDENTIALS = True
