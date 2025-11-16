@@ -1,77 +1,110 @@
-import React, { useState, useEffect } from 'react';
-import { getProviders, getBundles, getRouters } from './services/api';
+// App.js
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Header from './components/Header';
-import Hero from './components/Hero';
-import Services from './components/Services';
-import Products from './components/Products';
-import OrderForm from './components/OrderForm';
-import Footer from './components/Footer';
+import ProductList from './components/ProductList';
+import ShoppingCart from './components/ShoppingCart';
+import CheckoutForm from './components/CheckoutForm';
+import OrderSuccess from './components/OrderSuccess';
 import OrderTracking from './components/OrderTracking';
-import './App.css';
+import UserProfile from './components/UserProfile';
+import AuthModal from './components/AuthModal';
 
-function App() {
-  const [providers, setProviders] = useState([]);
-  const [bundles, setBundles] = useState([]);
-  const [routers, setRouters] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+function AppContent() {
+  const [currentView, setCurrentView] = useState('products');
+  const [cartItems, setCartItems] = useState([]);
+  const [orderData, setOrderData] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [providersResponse, bundlesResponse, routersResponse] = await Promise.all([
-          getProviders(),
-          getBundles(),
-          getRouters()
-        ]);
-        
-        setProviders(providersResponse.data);
-        setBundles(bundlesResponse.data);
-        setRouters(routersResponse.data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
+  // ... your existing product and cart logic ...
 
-    fetchData();
-  }, []);
-
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">Error: {error}</div>;
+  const renderContent = () => {
+    switch (currentView) {
+      case 'products':
+        return (
+          <ProductList 
+            products={products} 
+            onAddToCart={addToCart} 
+          />
+        );
+      case 'cart':
+        return (
+          <ShoppingCart
+            cartItems={cartItems}
+            onUpdateQuantity={updateQuantity}
+            onRemoveItem={removeFromCart}
+            onProceedToCheckout={() => setCurrentView('checkout')}
+          />
+        );
+      case 'checkout':
+        return (
+          <CheckoutForm
+            cartItems={cartItems}
+            total={total}
+            onOrderSuccess={(data) => {
+              setOrderData(data);
+              setCurrentView('success');
+              setCartItems([]);
+            }}
+            onBackToCart={() => setCurrentView('cart')}
+          />
+        );
+      case 'success':
+        return (
+          <OrderSuccess
+            orderData={orderData}
+            onContinueShopping={() => {
+              setCurrentView('products');
+              setOrderData(null);
+            }}
+          />
+        );
+      case 'tracking':
+        return <OrderTracking />;
+      case 'profile':
+        return isAuthenticated ? <UserProfile /> : <Navigate to="/" />;
+      default:
+        return <ProductList products={products} onAddToCart={addToCart} />;
+    }
+  };
 
   return (
-    <div className="App">
-      <Header />
-      <Hero />
-      <Services providers={providers} />
-      <Products routers={routers} />
-      <OrderForm providers={providers} bundles={bundles} routers={routers} />
-      <Footer />
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        cartItemsCount={cartItems.length}
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        onShowAuth={() => setShowAuthModal(true)}
+      />
+      
+      <main className="container mx-auto px-4 py-8">
+        {renderContent()}
+      </main>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => setShowAuthModal(false)}
+        showGuestOption={true}
+      />
     </div>
   );
 }
-// App.jsx or main component
+
 function App() {
-    return (
-        <div className="App">
-            <header>
-                <h1>Frecha IoTech</h1>
-                <nav>
-                    <a href="/">Home</a>
-                    <a href="/track-order">Track Order</a>
-                    <a href="/signup-tracking">Sign Up for Tracking</a>
-                </nav>
-            </header>
-            
-            {/* Your existing routes */}
-            <Route path="/track-order" component={OrderTrackingLookup} />
-            <Route path="/signup-tracking" component={OrderTrackingSignup} />
-        </div>
-    );
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<AppContent />} />
+          <Route path="/track-order" element={<OrderTracking />} />
+          <Route path="/profile" element={<UserProfile />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
 }
-<Route path="/track-order" component={OrderTracking} />
 
 export default App;
