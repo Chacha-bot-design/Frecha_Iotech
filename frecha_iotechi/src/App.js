@@ -6,6 +6,7 @@ import Services from './components/Services';
 import Products from './components/Products';
 import OrderForm from './components/OrderForm';
 import Footer from './components/Footer';
+import OrderTracking from './components/OrderTracking';
 import './App.css';
 
 function App() {
@@ -71,5 +72,6 @@ function App() {
         </div>
     );
 }
+<Route path="/track-order" component={OrderTracking} />
 
 export default App;
