@@ -1,64 +1,89 @@
 # store/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from django.contrib.auth import views as auth_views
-from . import views
-from store import views as store_views 
+from .views import (
+    # ViewSets
+    ElectronicsDevicesViewSet,
+    OrderViewSet,
+    AdminOrderViewSet,
+    ServiceProviderViewSet,
+    AdminServiceProviderViewSet,
+    DataBundleViewSet,
+    AdminDataBundleViewSet,
+    RouterProductViewSet,
+    AdminRouterProductViewSet,
+    
+    # Function-based views
+    api_status,
+    electronics_stats,
+    public_electronics,
+    public_providers,
+    public_bundles,
+    public_routers,
+    all_services,
+    provider_bundles,
+    create_order,
+    user_login,
+    user_logout,
+    current_user,
+    admin_order_stats,
+    admin_update_order_status,
+    admin_send_notification,
+    admin_search_orders,
+    guest_order_signup,
+    track_order,
+    update_order_tracking,
+    
+    # Template views
+    signup,
+    login_view,
+    profile,
+)
 
-# Create router
 router = DefaultRouter()
-
-# Register viewsets
-router.register(r'providers', views.ServiceProviderViewSet, basename='provider')
-router.register(r'bundles', views.DataBundleViewSet, basename='bundle')
-router.register(r'routers', views.RouterProductViewSet, basename='router')
-router.register(r'orders', views.OrderViewSet, basename='order')
-
-# Admin viewsets
-router.register(r'admin/providers', views.AdminServiceProviderViewSet, basename='admin-provider')
-router.register(r'admin/bundles', views.AdminDataBundleViewSet, basename='admin-bundle')
-router.register(r'admin/routers', views.AdminRouterProductViewSet, basename='admin-router')
-router.register(r'admin/orders', views.AdminOrderViewSet, basename='admin-order')
+router.register(r'electronics', ElectronicsDevicesViewSet, basename='electronics')
+router.register(r'orders', OrderViewSet, basename='orders')
+router.register(r'admin/orders', AdminOrderViewSet, basename='admin-orders')
+router.register(r'providers', ServiceProviderViewSet, basename='providers')
+router.register(r'admin/providers', AdminServiceProviderViewSet, basename='admin-providers')
+router.register(r'bundles', DataBundleViewSet, basename='bundles')
+router.register(r'admin/bundles', AdminDataBundleViewSet, basename='admin-bundles')
+router.register(r'routers', RouterProductViewSet, basename='routers')
+router.register(r'admin/routers', AdminRouterProductViewSet, basename='admin-routers')
 
 urlpatterns = [
-    # Include all router URLs under /api/
+    # API Routes
     path('api/', include(router.urls)),
     
-    # ========== PUBLIC ENDPOINTS ==========
+    # Public API endpoints
+    path('api/status/', api_status, name='api_status'),
+    path('api/electronics-stats/', electronics_stats, name='electronics_stats'),
+    path('api/public-electronics/', public_electronics, name='public_electronics'),
+    path('api/public-providers/', public_providers, name='public_providers'),
+    path('api/public-bundles/', public_bundles, name='public_bundles'),
+    path('api/public-routers/', public_routers, name='public_routers'),
+    path('api/all-services/', all_services, name='all_services'),
+    path('api/provider/<int:provider_id>/bundles/', provider_bundles, name='provider_bundles'),
     
-    # Service endpoints
-    path('api/public/providers/', views.public_providers, name='public-providers'),
-    path('api/public/bundles/', views.public_bundles, name='public-bundles'),
-    path('api/public/routers/', views.public_routers, name='public-routers'),
-    path('api/all-services/', views.all_services, name='all-services'),
+    # Order management
+    path('api/create-order/', create_order, name='create_order'),
+    path('api/track-order/<str:tracking_number>/', track_order, name='track_order'),
+    path('api/guest-signup/', guest_order_signup, name='guest_order_signup'),
     
-    # Order endpoints
-    path('api/orders/create/', views.create_order, name='create-order'),
+    # Authentication
+    path('api/login/', user_login, name='user_login'),
+    path('api/logout/', user_logout, name='user_logout'),
+    path('api/current-user/', current_user, name='current_user'),
     
-    # Provider-specific endpoints
-    path('api/providers/<int:provider_id>/bundles/', views.provider_bundles, name='provider-bundles'),
+    # Admin endpoints
+    path('api/admin/order-stats/', admin_order_stats, name='admin_order_stats'),
+    path('api/admin/orders/<int:order_id>/update-status/', admin_update_order_status, name='admin_update_order_status'),
+    path('api/admin/orders/<int:order_id>/send-notification/', admin_send_notification, name='admin_send_notification'),
+    path('api/admin/search-orders/', admin_search_orders, name='admin_search_orders'),
+    path('api/admin/orders/<int:order_id>/update-tracking/', update_order_tracking, name='update_order_tracking'),
     
-    # User endpoints
-    path('api/current-user/', views.current_user, name='current-user'),
-    
-    # ========== UTILITY ENDPOINTS ==========
-    
-    path('api/status/', views.api_status, name='api-status'),
-    
-    # ========== AUTH ENDPOINTS ==========
-    
-    path('api/auth/login/', views.user_login, name='user-login'),
-    path('api/auth/logout/', views.user_logout, name='user-logout'),
-
-     # ========== ADMIN ORDER MANAGEMENT ==========
-    path('api/admin/orders/stats/', views.admin_order_stats, name='admin-order-stats'),
-    path('api/admin/orders/<int:order_id>/update-status/', views.admin_update_order_status, name='admin-update-order-status'),
-    path('api/admin/orders/<int:order_id>/send-notification/', views.admin_send_notification, name='admin-send-notification'),
-    path('api/admin/orders/search/', views.admin_search_orders, name='admin-search-orders'),
-    
-    # Order Tracking URLs
-path('api/tracking/signup/', views.guest_order_signup, name='tracking-signup'),
-path('api/tracking/<str:tracking_number>/', views.track_order, name='track-order'),
-path('api/admin/orders/<int:order_id>/update-tracking/', views.update_order_tracking, name='update-tracking'),
-     
+    # Template routes (for Django templates if needed)
+    path('signup/', signup, name='signup'),
+    path('login/', login_view, name='login'),
+    path('profile/', profile, name='profile'),
 ]

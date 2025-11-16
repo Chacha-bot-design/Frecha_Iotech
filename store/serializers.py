@@ -1,7 +1,7 @@
 # store/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Order, ServiceProvider, DataBundle, RouterProduct
+from .models import Order, ServiceProvider, DataBundle, RouterProduct,Electronics
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,6 +31,16 @@ class RouterProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'description', 'price', 'specifications',
             'is_available', 'image', 'created_at', 'updated_at'
         ]
+        
+        
+class ElectronicsSerializer(serializers.ModelSerializer): 
+    class Meta:
+        model = Electronics
+        fields = [
+            'id', 'name', 'description', 'price', 'specifications',
+            'is_available', 'image', 'created_at', 'updated_at'
+        ]
+
 
 class OrderSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

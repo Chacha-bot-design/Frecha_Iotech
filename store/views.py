@@ -1,21 +1,25 @@
 # store/views.py
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth import authenticate, login, logout
-from .models import Order, ServiceProvider, DataBundle, RouterProduct, OrderTracking  # ← ADD OrderTracking
-from .serializers import (
-    OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer, 
-    ServiceProviderSerializer, DataBundleSerializer, RouterProductSerializer
-)
-# store/views.py
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from datetime import timedelta
+
+from .models import Order, ServiceProvider, DataBundle, RouterProduct, OrderTracking, ElectronicsDevices
+from .serializers import (
+    OrderSerializer, OrderCreateSerializer, OrderUpdateSerializer, 
+    ServiceProviderSerializer, DataBundleSerializer, RouterProductSerializer,
+    ElectronicsDevicesSerializer
+)
+
+# ============ TEMPLATE VIEWS ============
 
 def signup(request):
     if request.method == 'POST':
@@ -24,7 +28,7 @@ def signup(request):
             user = form.save()
             login(request, user)
             messages.success(request, 'Account created successfully!')
-            return redirect('home')  # Replace with your home page name
+            return redirect('home')
         else:
             messages.error(request, 'Please correct the error below.')
     else:
@@ -41,7 +45,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Welcome back, {username}!')
-            return redirect('home')  # Replace with your home page name
+            return redirect('home')
         else:
             messages.error(request, 'Invalid username or password.')
     
@@ -51,10 +55,81 @@ def login_view(request):
 def profile(request):
     return render(request, 'store/profile.html', {'user': request.user})
 
+# ============ ELECTRONICS DEVICES VIEWSET ============
+
+class ElectronicsDevicesViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for electronics devices
+    """
+    queryset = ElectronicsDevices.objects.filter(is_available=True)
+    serializer_class = ElectronicsDevicesSerializer
+    permission_classes = [permissions.AllowAny]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'description', 'specifications']
+    filterset_fields = ['is_available']
+    ordering_fields = ['price', 'name', 'created_at']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        queryset = ElectronicsDevices.objects.all()
+        
+        # Filter by category if provided
+        category = self.request.query_params.get('category', None)
+        if category:
+            queryset = queryset.filter(category__icontains=category)
+            
+        # Filter by price range if provided
+        min_price = self.request.query_params.get('min_price', None)
+        max_price = self.request.query_params.get('max_price', None)
+        
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+            
+        return queryset
+
+    @action(detail=False, methods=['get'])
+    def categories(self, request):
+        """Get all unique categories"""
+        categories = ElectronicsDevices.objects.values_list('category', flat=True).distinct()
+        return Response({'categories': list(categories)})
+
+    @action(detail=False, methods=['get'])
+    def featured(self, request):
+        """Get featured electronics"""
+        featured_devices = ElectronicsDevices.objects.filter(is_available=True).order_by('-created_at')[:8]
+        serializer = self.get_serializer(featured_devices, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def on_sale(self, request):
+        """Get electronics on sale"""
+        week_ago = timezone.now() - timedelta(days=7)
+        new_arrivals = ElectronicsDevices.objects.filter(
+            is_available=True,
+            created_at__gte=week_ago
+        )
+        serializer = self.get_serializer(new_arrivals, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Get electronics statistics"""
+        total = ElectronicsDevices.objects.count()
+        available = ElectronicsDevices.objects.filter(is_available=True).count()
+        categories = ElectronicsDevices.objects.values('category').distinct().count()
+        
+        return Response({
+            'total_devices': total,
+            'available_devices': available,
+            'categories_count': categories
+        })
+
 # ============ ORDER VIEWSETS ============
 
 class OrderViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]  # Changed to AllowAny for public order creation
+    permission_classes = [permissions.AllowAny]
     
     def get_queryset(self):
         user = self.request.user
@@ -64,7 +139,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             else:
                 return Order.objects.filter(user=user)
         else:
-            return Order.objects.none()  # Public users can't view orders
+            return Order.objects.none()
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -76,11 +151,10 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderSerializer
     
     def perform_create(self, serializer):
-        # Only set user if authenticated, otherwise create public order
         if self.request.user.is_authenticated:
             serializer.save(user=self.request.user)
         else:
-            serializer.save()  # Public order without user
+            serializer.save()
     
     @action(detail=False, methods=['get'])
     def my_orders(self, request):
@@ -148,9 +222,6 @@ class AdminOrderViewSet(viewsets.ModelViewSet):
 # ============ SERVICE PROVIDER VIEWSETS ============
 
 class ServiceProviderViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for service providers (public access)
-    """
     permission_classes = [permissions.AllowAny]
     queryset = ServiceProvider.objects.filter(is_active=True)
     serializer_class = ServiceProviderSerializer
@@ -167,16 +238,12 @@ class ServiceProviderViewSet(viewsets.ModelViewSet):
         })
 
 class AdminServiceProviderViewSet(viewsets.ModelViewSet):
-    """
-    Admin ViewSet for managing service providers
-    """
     permission_classes = [permissions.IsAdminUser]
     queryset = ServiceProvider.objects.all()
     serializer_class = ServiceProviderSerializer
     
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
-        """Activate a service provider"""
         provider = self.get_object()
         provider.is_active = True
         provider.save()
@@ -184,7 +251,6 @@ class AdminServiceProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def deactivate(self, request, pk=None):
-        """Deactivate a service provider"""
         provider = self.get_object()
         provider.is_active = False
         provider.save()
@@ -193,9 +259,6 @@ class AdminServiceProviderViewSet(viewsets.ModelViewSet):
 # ============ DATA BUNDLE VIEWSETS ============
 
 class DataBundleViewSet(viewsets.ModelViewSet):
-    """
-    Public ViewSet for data bundles
-    """
     permission_classes = [permissions.AllowAny]
     queryset = DataBundle.objects.filter(is_active=True)
     serializer_class = DataBundleSerializer
@@ -208,16 +271,12 @@ class DataBundleViewSet(viewsets.ModelViewSet):
         return queryset
 
 class AdminDataBundleViewSet(viewsets.ModelViewSet):
-    """
-    Admin ViewSet for managing data bundles
-    """
     permission_classes = [permissions.IsAdminUser]
     queryset = DataBundle.objects.all()
     serializer_class = DataBundleSerializer
     
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
-        """Activate a data bundle"""
         bundle = self.get_object()
         bundle.is_active = True
         bundle.save()
@@ -225,7 +284,6 @@ class AdminDataBundleViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def deactivate(self, request, pk=None):
-        """Deactivate a data bundle"""
         bundle = self.get_object()
         bundle.is_active = False
         bundle.save()
@@ -234,9 +292,6 @@ class AdminDataBundleViewSet(viewsets.ModelViewSet):
 # ============ ROUTER PRODUCT VIEWSETS ============
 
 class RouterProductViewSet(viewsets.ModelViewSet):
-    """
-    Public ViewSet for router products
-    """
     permission_classes = [permissions.AllowAny]
     serializer_class = RouterProductSerializer
     
@@ -257,16 +312,12 @@ class RouterProductViewSet(viewsets.ModelViewSet):
             )
 
 class AdminRouterProductViewSet(viewsets.ModelViewSet):
-    """
-    Admin ViewSet for managing router products
-    """
     permission_classes = [permissions.IsAdminUser]
     queryset = RouterProduct.objects.all()
     serializer_class = RouterProductSerializer
     
     @action(detail=True, methods=['post'])
     def make_available(self, request, pk=None):
-        """Make a router product available"""
         router = self.get_object()
         router.is_available = True
         router.save()
@@ -274,7 +325,6 @@ class AdminRouterProductViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def make_unavailable(self, request, pk=None):
-        """Make a router product unavailable"""
         router = self.get_object()
         router.is_available = False
         router.save()
@@ -291,6 +341,34 @@ def api_status(request):
         'timestamp': timezone.now(),
         'services_available': True
     })
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def electronics_stats(request):
+    """Get statistics for electronics"""
+    total_electronics = ElectronicsDevices.objects.count()
+    available_electronics = ElectronicsDevices.objects.filter(is_available=True).count()
+    categories_count = ElectronicsDevices.objects.values('category').distinct().count()
+    
+    return Response({
+        'total_electronics': total_electronics,
+        'available_electronics': available_electronics,
+        'categories_count': categories_count
+    })
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def public_electronics(request):
+    """Public endpoint to get all available electronics"""
+    try:
+        electronics = ElectronicsDevices.objects.filter(is_available=True)
+        serializer = ElectronicsDevicesSerializer(electronics, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response(
+            {'error': 'Failed to fetch electronics', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
@@ -342,11 +420,13 @@ def all_services(request):
         providers = ServiceProvider.objects.filter(is_active=True)
         bundles = DataBundle.objects.filter(is_active=True).select_related('provider')
         routers = RouterProduct.objects.filter(is_available=True)
+        electronics = ElectronicsDevices.objects.filter(is_available=True)
         
         return Response({
             'providers': ServiceProviderSerializer(providers, many=True).data,
             'bundles': DataBundleSerializer(bundles, many=True).data,
-            'routers': RouterProductSerializer(routers, many=True).data
+            'routers': RouterProductSerializer(routers, many=True).data,
+            'electronics': ElectronicsDevicesSerializer(electronics, many=True).data
         })
     except Exception as e:
         return Response(
@@ -373,8 +453,6 @@ def provider_bundles(request, provider_id):
             {'error': 'Failed to fetch provider bundles', 'details': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
-# ... your other views above ...
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -423,8 +501,6 @@ def create_order(request):
             {'error': 'Failed to create order', 'details': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
-# ... your other views below (user_login, admin_order_stats, etc.) ...
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -561,14 +637,14 @@ def admin_send_notification(request, order_id):
         return Response({'error': str(e)}, status=500)
 
 @api_view(['GET'])
-@permission_classes([permissions.AllowAny])  # Public for testing
+@permission_classes([permissions.AllowAny])
 def admin_search_orders(request):
     """Search orders by customer name, email, phone, or product"""
     try:
         query = request.GET.get('q', '')
         
         if not query:
-            orders = Order.objects.all().order_by('-created_at')[:50]  # Limit for performance
+            orders = Order.objects.all().order_by('-created_at')[:50]
         else:
             orders = Order.objects.filter(
                 Q(customer_name__icontains=query) |
@@ -653,7 +729,6 @@ def track_order(request, tracking_number):
             'product_details': order.product_details,
             'order_date': order.created_at,
             'status_updates': tracking.status_updates,
-            'estimated_delivery': order.estimated_delivery,
             'customer_support_email': 'support@frechaiotech.com'
         })
         
@@ -688,4 +763,3 @@ def update_order_tracking(request, order_id):
         
     except Order.DoesNotExist:
         return Response({'error': 'Order not found'}, status=404)
-   
