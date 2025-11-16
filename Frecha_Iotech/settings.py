@@ -135,9 +135,9 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 
 # Authentication
-LOGIN_URL = '/admin/login/'
-LOGIN_REDIRECT_URL = '/admin/'
-LOGOUT_REDIRECT_URL = '/admin/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = 'profile/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Static files additional config
 STATICFILES_DIRS = [
