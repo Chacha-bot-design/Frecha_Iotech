@@ -9,7 +9,7 @@ import OrderSuccess from './components/OrderSuccess';
 import OrderTracking from './components/OrderTracking';
 import UserProfile from './components/UserProfile';
 import AuthModal from './components/AuthModal';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from '..context/AuthContext';
 
 // Sample products data
 const sampleProducts = [
