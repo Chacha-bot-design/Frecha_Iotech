@@ -46,7 +46,7 @@ class DataBundle(models.Model):
         return f"{self.name} - {self.provider.name}"
 
 # ✅ FIXED: Proper indentation for ElectronicsDevices class
-class ElectronicsDevices(models.Model):
+class Electronics(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
