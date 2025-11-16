@@ -36,7 +36,7 @@ api.interceptors.response.use(
 export const getProviders = () => api.get('/api/providers/');
 export const getBundles = () => api.get('/api/bundles/');
 export const getRouters = () => api.get('/api/routers/');
-export const createOrder = (orderData) => api.post('/api/orders/create/', orderData);
+export const createOrder = (orderData) => api.post('/api/orders/', orderData);
 
 // ✅ CORRECTED BUNDLES BY PROVIDER ROUTE - FIXED THIS LINE
 export const getBundlesByProvider = (providerId) => 
