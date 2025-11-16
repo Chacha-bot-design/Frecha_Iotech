@@ -10,8 +10,8 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 
 
-# ===== CORS CONFIGURATION =====
-CORS_ALLOWED_ORIGINS = [
+# ===== CORS CONFIGURATION =====#
+ALLOWED_HOSTS =[
     "https://frecha-iotechi.onrender.com",
     "https://frecha-iotech.onrender.com",
     '.onrender.com',
