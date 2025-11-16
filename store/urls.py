@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.contrib.auth import views as auth_views
 from . import views
-
+from store import views as store_views 
 
 # Create router
 router = DefaultRouter()

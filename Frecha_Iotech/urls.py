@@ -2,6 +2,8 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.http import HttpResponse
+from store import views as store_views 
+from django.contrib.auth import views as auth_views
 
 def home_view(request):
     return HttpResponse("""
