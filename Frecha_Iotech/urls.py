@@ -1,22 +1,48 @@
+# Frecha_Iotech/urls.py
 from django.contrib import admin
+from django.urls import path, include
 from django.http import HttpResponse
-from django.urls import path, include, re_path
-from django.views.generic import TemplateView
-from django.conf import settings
-from django.conf.urls.static import static
 
-def home(request):
-  return HttpResponse("API backend running")
+def home_view(request):
+    return HttpResponse("""
+    <h1>Frecha Iotech - Server Running ✅</h1>
+    <p>Test these endpoints:</p>
+    <ul>
+        <li><a href="/api/status/">API Status</a></li>
+        <li><a href="/api/providers/">Providers</a></li>
+        <li><a href="/api/bundles/">Bundles</a></li>
+        <li><a href="/api/routers/">Routers</a></li>
+        <li><a href="/api/all-services/">All Services</a></li>
+        <li><a href="/api/debug/">Debug Info</a></li>
+        <li><a href="/admin/">Admin</a></li>
+    </ul>
+    <script>
+        // Test all endpoints
+        async function testEndpoints() {
+            const endpoints = [
+                '/api/status/',
+                '/api/providers/',
+                '/api/bundles/',
+                '/api/routers/',
+                '/api/all-services/',
+                '/api/debug/'
+            ];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint);
+                    console.log(endpoint, response.status, response.ok);
+                } catch (error) {
+                    console.error(endpoint, 'FAILED:', error);
+                }
+            }
+        }
+        testEndpoints();
+    </script>
+    """)
+
 urlpatterns = [
-    # Admin
     path('admin/', admin.site.urls),
-    
-    # API
-    path('api/', include('store.urls')),
-    
-    path('', home),
+    path('', home_view),
+    path('', include('store.urls')),  # Include store URLs
 ]
-
-# Serve static and media files
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
