@@ -8,12 +8,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-key')
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = [
-    'frecha-iotech.onrender.com',
-    'frecha-iotechi.onrender.com',
-    'localhost',
-    '127.0.0.1'
+
+
+# ===== CORS CONFIGURATION =====
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "https://frecha-iotechi.onrender.com",
+    "https://frecha-iotech.onrender.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
+CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
+# ===== AUTHENTICATION =====
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/profile/'  # ← Fixed: added leading slash
+LOGOUT_REDIRECT_URL = '/'
+
+print("🔐 PRODUCTION CORS CONFIGURED")
+print(f"   Frontend: https://frecha-iotechi.onrender.com")
+print(f"   Backend: https://frecha-iotech.onrender.com")
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
