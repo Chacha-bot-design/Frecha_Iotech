@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile - Frecha Iotech</title>
+    <style>
+        .profile-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .profile-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <h2>User Profile</h2>
+        
+        <div class="profile-info">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email|default:"Not provided" }}</p>
+            <p><strong>Joined:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
+            <p><strong>Last Login:</strong> {{ user.last_login|date:"F j, Y g:i A" }}</p>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a href="{% url 'logout' %}" class="btn" 
+               onclick="return confirm('Are you sure you want to logout?');">
+                Logout
+            </a>
+            <a href="{% url 'password_reset' %}" class="btn" style="background-color: #6c757d;">
+                Change Password
+            </a>
+        </div>
+
+        {% if user.orders.all %}
+        <div style="margin-top: 30px;">
+            <h3>Your Orders</h3>
+            <ul>
+                {% for order in user.orders.all %}
+                <li>
+                    Order #{{ order.id }} - {{ order.get_service_type_display }} - 
+                    {{ order.get_status_display }} - TZS {{ order.total_price }}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
