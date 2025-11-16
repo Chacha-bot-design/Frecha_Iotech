@@ -31,6 +31,7 @@ class RouterProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'description', 'price', 'specifications',
             'is_available', 'image', 'created_at', 'updated_at'
         ]
+
 class OrderSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
@@ -55,6 +56,13 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             'customer_name', 'customer_email', 'customer_phone',
             'service_type', 'product_details', 'quantity', 'total_price', 'notes'
         ]
+        # ✅ ADD THIS TO MAKE FIELDS OPTIONAL
+        extra_kwargs = {
+            'service_type': {'required': False, 'default': 'bundle'},
+            'quantity': {'required': False, 'default': 1},
+            'total_price': {'required': False, 'default': 0.00},
+            'notes': {'required': False, 'allow_blank': True}
+        }
 
 class OrderUpdateSerializer(serializers.ModelSerializer):
     class Meta:
