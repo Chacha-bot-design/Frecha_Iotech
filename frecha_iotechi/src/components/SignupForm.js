@@ -36,6 +36,13 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
       return;
     }
 
+    // Validate password strength
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Create account
       const signupResult = await signup({
@@ -80,7 +87,11 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
 
     } catch (err) {
       console.error('Signup/Order error:', err);
-      setError(err.response?.data?.message || 'Failed to create account and place order');
+      setError(
+        err.response?.data?.message || 
+        err.response?.data?.error || 
+        'Failed to create account and place order. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -89,6 +100,12 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
   return (
     <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
       <div className="mb-6">
+        <button 
+          onClick={onBack}
+          className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+        >
+          ← Back to checkout options
+        </button>
         <h2 className="text-2xl font-bold text-gray-900">Create Account & Checkout</h2>
         <p className="text-gray-600 mt-2">
           Create an account to track this and future orders easily.
@@ -114,7 +131,9 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
               value={formData.username}
               onChange={handleInputChange}
               required
+              minLength="3"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your username"
             />
           </div>
           <div>
@@ -128,6 +147,7 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
               onChange={handleInputChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="your@email.com"
             />
           </div>
           <div>
@@ -140,7 +160,9 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
               value={formData.password}
               onChange={handleInputChange}
               required
+              minLength="6"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="At least 6 characters"
             />
           </div>
           <div>
@@ -153,7 +175,9 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
               value={formData.confirmPassword}
               onChange={handleInputChange}
               required
+              minLength="6"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Confirm your password"
             />
           </div>
           <div>
@@ -169,7 +193,7 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Shipping Address *
             </label>
@@ -180,6 +204,7 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
               onChange={handleInputChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your complete shipping address"
             />
           </div>
         </div>
@@ -188,14 +213,14 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="text-lg font-semibold mb-3">Order Summary</h3>
           {cartItems.map(item => (
-            <div key={item.id} className="flex justify-between py-2">
-              <span>{item.name} x {item.quantity}</span>
-              <span>${(item.price * item.quantity).toFixed(2)}</span>
+            <div key={item.id} className="flex justify-between py-2 border-b border-gray-200">
+              <span className="text-gray-700">{item.name} x {item.quantity}</span>
+              <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
             </div>
           ))}
-          <div className="border-t mt-2 pt-2 font-semibold flex justify-between">
+          <div className="border-t mt-2 pt-2 font-semibold flex justify-between text-lg">
             <span>Total:</span>
-            <span>${total.toFixed(2)}</span>
+            <span className="text-green-600">${total.toFixed(2)}</span>
           </div>
         </div>
 
@@ -205,7 +230,7 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
             <div className="text-green-400 mr-3">✅</div>
             <div>
               <h4 className="font-semibold text-green-800">Account Benefits</h4>
-              <ul className="text-green-700 text-sm mt-1 list-disc list-inside">
+              <ul className="text-green-700 text-sm mt-1 list-disc list-inside space-y-1">
                 <li>Track all your orders in one place</li>
                 <li>Faster checkout for future orders</li>
                 <li>Order history and easy reordering</li>
@@ -216,17 +241,36 @@ const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex space-x-4">
+        <div className="flex space-x-4 pt-4">
           <button
             type="button"
             onClick={onBack}
-            className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-md hover:bg-gray-600"
+            disabled={loading}
+            className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-md hover:bg-gray-600 disabled:opacity-50 font-semibold transition duration-200"
           >
             Back to Options
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 bg-green-500 text-white py-3 px-4 rounded-md hover:bg-green-600 disabled:opacity-50 font-semibold"
+            className="flex-1 bg-green-500 text-white py-3 px-4 rounded-md hover:bg-green-600 disabled:opacity-50 font-semibold transition duration-200 flex items-center justify-center"
           >
-            {loading ? 'Creating Account...' : 'Create
+            {loading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Creating Account...
+              </>
+            ) : (
+              'Create Account & Place Order'
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default SignUpForm;
