@@ -1,6 +1,6 @@
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
 import styles from './Header.module.css';
+import { useAuth } from './context/AuthContext';
 
 const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
   const { isAuthenticated, user, logout } = useAuth();

@@ -1,7 +1,6 @@
 // App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
 import Header from './components/Header';
 import ProductList from './components/ProductList';
 import ShoppingCart from './components/ShoppingCart';
@@ -10,6 +9,7 @@ import OrderSuccess from './components/OrderSuccess';
 import OrderTracking from './components/OrderTracking';
 import UserProfile from './components/UserProfile';
 import AuthModal from './components/AuthModal';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Sample products data
 const sampleProducts = [
