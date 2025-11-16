@@ -29,42 +29,54 @@ const OrderForm = ({ providers, bundles, routers }) => {
     console.log('Form data:', formData);
     console.log('======================');
   }, [providers, routers, selectedProvider, filteredBundles, formData]);
-const handleProviderChange = async (e) => {
-  const providerId = e.target.value;
-  setSelectedProvider(providerId);
 
-  // Reset product_id when provider changes
-  setFormData(prev => ({
-    ...prev,
-    product_id: ''
-  }));
+  // ✅ FIXED: Updated handleProviderChange function
+  const handleProviderChange = async (e) => {
+    const providerId = e.target.value;
+    setSelectedProvider(providerId);
 
-  if (providerId) {
-    try {
-      const response = await getBundlesByProvider(providerId);
-      
-      // ✅ CORRECTED: Extract bundles from the nested response structure
-      const bundlesData = Array.isArray(response?.data?.bundles) 
-        ? response.data.bundles 
-        : [];
+    // Reset product_id when provider changes
+    setFormData(prev => ({
+      ...prev,
+      product_id: ''
+    }));
+
+    if (providerId) {
+      try {
+        const response = await getBundlesByProvider(providerId);
         
-      setFilteredBundles(bundlesData);
-      
-      if (bundlesData.length === 0) {
-        setMessage('No bundles available for this provider.');
-      } else {
-        setMessage('');
+        // ✅ CORRECTED: Extract bundles from the nested response
+        const bundlesData = Array.isArray(response?.data?.bundles) 
+          ? response.data.bundles 
+          : [];
+          
+        setFilteredBundles(bundlesData);
+        
+        if (bundlesData.length === 0) {
+          setMessage('No bundles available for this provider.');
+        } else {
+          setMessage('');
+        }
+      } catch (error) {
+        console.error('Error fetching bundles:', error);
+        setFilteredBundles([]);
+        setMessage('Error loading bundles. Please try again.');
       }
-    } catch (error) {
-      console.error('Error fetching bundles:', error);
+    } else {
       setFilteredBundles([]);
-      setMessage('Error loading bundles. Please try again.');
+      setMessage('');
     }
-  } else {
-    setFilteredBundles([]);
-    setMessage('');
-  }
-};
+  };
+
+  // ✅ MAKE SURE THIS FUNCTION EXISTS
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   // Helper function to get product details
   const getProductDetails = () => {
     if (formData.service_type === 'router' && formData.product_id) {
