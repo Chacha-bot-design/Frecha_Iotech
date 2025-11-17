@@ -1,87 +1,52 @@
 // src/App.js
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './AuthContext';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
 import ProductList from './components/ProductList';
 import ShoppingCart from './components/ShoppingCart';
 import CheckoutForm from './components/CheckoutForm';
 import OrderSuccess from './components/OrderSuccess';
 import OrderTracking from './components/OrderTracking';
-import UserProfile from './components/UserProfile';
 import AuthModal from './components/AuthModal';
+import './App.css';
 
-// Sample products data
-const sampleProducts = [
-  {
-    id: 1,
-    name: "Wireless Bluetooth Headphones",
-    price: 79.99,
-    description: "High-quality wireless headphones with noise cancellation",
-    category: "Electronics",
-    inStock: true
-  },
-  {
-    id: 2,
-    name: "Smart Fitness Watch",
-    price: 199.99,
-    description: "Track your fitness goals with this advanced smartwatch",
-    category: "Electronics", 
-    inStock: true
-  }
-];
-
-// Move AppContent inside the AuthProvider
-function App() {
-  return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
-  );
-}
-
-// AppContent component that uses useAuth
+// Main app content component that uses the AuthProvider
 function AppContent() {
   const [currentView, setCurrentView] = useState('products');
   const [cartItems, setCartItems] = useState([]);
   const [orderData, setOrderData] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const { isAuthenticated } = useAuth(); // This will now work inside AuthProvider
 
-  // Cart management functions
   const addToCart = (product) => {
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
+    setCartItems(prev => {
+      const existingItem = prev.find(item => item.id === product.id && item.category === product.category);
       if (existingItem) {
-        return prevItems.map(item =>
-          item.id === product.id
+        return prev.map(item =>
+          item.id === product.id && item.category === product.category
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       } else {
-        return [...prevItems, { ...product, quantity: 1 }];
+        return [...prev, { ...product, quantity: 1 }];
       }
     });
   };
 
-  const updateQuantity = (productId, newQuantity) => {
-    if (newQuantity < 1) {
-      removeFromCart(productId);
-      return;
-    }
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === productId
+  const updateQuantity = (itemId, newQuantity) => {
+    if (newQuantity < 1) return;
+    
+    setCartItems(prev =>
+      prev.map(item =>
+        item.id === itemId
           ? { ...item, quantity: newQuantity }
           : item
       )
     );
   };
 
-  const removeFromCart = (productId) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
+  const removeFromCart = (itemId) => {
+    setCartItems(prev => prev.filter(item => item.id !== itemId));
   };
 
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -89,7 +54,7 @@ function AppContent() {
   const renderContent = () => {
     switch (currentView) {
       case 'products':
-        return <ProductList products={sampleProducts} onAddToCart={addToCart} />;
+        return <ProductList onAddToCart={addToCart} />;
       case 'cart':
         return (
           <ShoppingCart
@@ -124,23 +89,21 @@ function AppContent() {
         );
       case 'tracking':
         return <OrderTracking />;
-      case 'profile':
-        return isAuthenticated ? <UserProfile /> : <Navigate to="/" />;
       default:
-        return <ProductList products={sampleProducts} onAddToCart={addToCart} />;
+        return <ProductList onAddToCart={addToCart} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header 
-        cartItemsCount={cartItems.reduce((count, item) => count + item.quantity, 0)}
+        cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
         currentView={currentView}
         onNavigate={setCurrentView}
         onShowAuth={() => setShowAuthModal(true)}
       />
       
-      <main className="container mx-auto px-4 py-8">
+      <main>
         {renderContent()}
       </main>
 
@@ -151,6 +114,20 @@ function AppContent() {
         showGuestOption={true}
       />
     </div>
+  );
+}
+
+// Main App component that wraps everything with AuthProvider
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<AppContent />} />
+          <Route path="/track-order" element={<OrderTracking />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
