@@ -1,6 +1,6 @@
 // components/UserProfile.js
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { AuthProvider, useAuth } from './AuthContext';
 import axios from 'axios';
 
 const UserProfile = () => {

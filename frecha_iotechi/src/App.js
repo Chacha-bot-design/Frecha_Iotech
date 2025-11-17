@@ -1,7 +1,8 @@
 // src/App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from '../context/AuthContext';
+import { AuthProvider, useAuth } from './AuthContext';
+
 
 import Header from './components/Header';
 import ProductList from './components/ProductList';

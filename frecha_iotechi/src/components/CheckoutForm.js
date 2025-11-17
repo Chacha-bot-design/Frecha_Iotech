@@ -1,7 +1,7 @@
 // components/CheckoutForm.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { AuthProvider, useAuth } from './AuthContext';
 import AuthModal from './AuthModal';
 
 const CheckoutForm = ({ cartItems, total, onOrderSuccess, onBackToCart }) => {

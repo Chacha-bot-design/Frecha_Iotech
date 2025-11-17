@@ -1,6 +1,6 @@
 // components/AuthModal.js
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { AuthProvider, useAuth } from './AuthContext';
 
 const AuthModal = ({ isOpen, onClose, onSuccess, showGuestOption = true }) => {
   const [activeTab, setActiveTab] = useState('login');

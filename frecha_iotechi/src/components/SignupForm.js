@@ -1,7 +1,7 @@
 // components/SignUpForm.js
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { AuthProvider, useAuth } from './AuthContext';
 
 const SignUpForm = ({ cartItems, total, onOrderSuccess, onBack }) => {
   const [formData, setFormData] = useState({
