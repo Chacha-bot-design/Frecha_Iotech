@@ -1,73 +1,136 @@
 // src/components/ShoppingCart.js
 import React from 'react';
+import './ShoppingCart.css';
 
-const ShoppingCart = ({ cartItems, onUpdateQuantity, onRemoveItem, onProceedToCheckout }) => {
+const ShoppingCart = ({ 
+  cartItems, 
+  onUpdateQuantity, 
+  onRemoveItem, 
+  onProceedToCheckout 
+}) => {
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const itemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  if (cartItems.length === 0) {
+    return (
+      <section className="cart-section">
+        <div className="container">
+          <div className="empty-cart">
+            <i className="bi bi-cart-x"></i>
+            <h3>Your cart is empty</h3>
+            <p>Add some products to get started</p>
+            <button 
+              className="btn btn-primary"
+              onClick={() => window.history.back()}
+            >
+              <i className="bi bi-arrow-left"></i>
+              Continue Shopping
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold mb-6">Shopping Cart</h2>
-      
-      {cartItems.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">Your cart is empty</p>
-          <button className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Continue Shopping
-          </button>
+    <section className="cart-section">
+      <div className="container">
+        <div className="cart-header">
+          <h1>Shopping Cart</h1>
+          <p className="text-gray-600">{itemsCount} {itemsCount === 1 ? 'item' : 'items'} in your cart</p>
         </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="space-y-4">
+
+        <div className="cart-content">
+          <div className="cart-items">
             {cartItems.map(item => (
-              <div key={item.id} className="flex justify-between items-center border-b pb-4">
-                <div className="flex-1">
-                  <h3 className="font-semibold">{item.name}</h3>
-                  <p className="text-gray-600">TZS {item.price.toLocaleString()}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                    className="bg-gray-200 px-2 py-1 rounded"
-                    disabled={item.quantity <= 1}
-                  >
-                    -
-                  </button>
-                  <span className="px-3">{item.quantity}</span>
-                  <button
-                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                    className="bg-gray-200 px-2 py-1 rounded"
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => onRemoveItem(item.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded ml-4"
-                  >
-                    Remove
-                  </button>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold">TZS {(item.price * item.quantity).toLocaleString()}</p>
+              <div key={`${item.id}-${item.category}`} className="cart-item">
+                <img 
+                  src={item.image} 
+                  alt={item.name}
+                  className="cart-item-image"
+                  onError={(e) => {
+                    e.target.src = '/images/placeholder.jpg';
+                  }}
+                />
+                <div className="cart-item-details">
+                  <h3 className="cart-item-name">{item.name}</h3>
+                  <div className="cart-item-category">{item.category}</div>
+                  <div className="cart-item-price">
+                    TZS {(item.price * item.quantity).toLocaleString()}
+                  </div>
+                  <div className="cart-item-actions">
+                    <div className="quantity-controls">
+                      <button 
+                        className="quantity-btn"
+                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                      >
+                        <i className="bi bi-dash"></i>
+                      </button>
+                      <span className="quantity-display">{item.quantity}</span>
+                      <button 
+                        className="quantity-btn"
+                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                      >
+                        <i className="bi bi-plus"></i>
+                      </button>
+                    </div>
+                    <button 
+                      className="remove-btn"
+                      onClick={() => onRemoveItem(item.id)}
+                    >
+                      <i className="bi bi-trash"></i>
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-          
-          <div className="mt-6 border-t pt-4">
-            <div className="flex justify-between items-center text-xl font-bold">
-              <span>Total:</span>
+
+          <div className="cart-summary">
+            <h3 className="summary-title">Order Summary</h3>
+            
+            <div className="summary-row">
+              <span>Items ({itemsCount})</span>
               <span>TZS {total.toLocaleString()}</span>
             </div>
-            <button
+            
+            <div className="summary-row">
+              <span>Shipping</span>
+              <span>TZS 10,000</span>
+            </div>
+            
+            <div className="summary-row">
+              <span>Tax</span>
+              <span>TZS {(total * 0.18).toLocaleString()}</span>
+            </div>
+            
+            <div className="summary-row">
+              <span>Total</span>
+              <span className="summary-total">
+                TZS {(total + 10000 + total * 0.18).toLocaleString()}
+              </span>
+            </div>
+
+            <button 
+              className="checkout-btn"
               onClick={onProceedToCheckout}
-              className="w-full bg-green-500 text-white py-3 px-4 rounded-md hover:bg-green-600 mt-4 font-semibold"
             >
+              <i className="bi bi-lock-fill"></i>
               Proceed to Checkout
+            </button>
+
+            <button 
+              className="continue-shopping btn btn-outline"
+              onClick={() => window.history.back()}
+            >
+              <i className="bi bi-arrow-left"></i>
+              Continue Shopping
             </button>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    </section>
   );
 };
 

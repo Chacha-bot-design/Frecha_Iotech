@@ -2,12 +2,14 @@
 import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Header from './Header';
+import Footer from './Footer';
 import ProductList from './ProductList';
 import ShoppingCart from './ShoppingCart';
 import CheckoutForm from './CheckoutForm';
 import OrderSuccess from './OrderSuccess';
 import OrderTracking from './OrderTracking';
 import AuthModal from './AuthModal';
+// Remove Bootstrap imports if any
 
 function MainApp() {
   const [currentView, setCurrentView] = useState('products');
@@ -84,13 +86,15 @@ function MainApp() {
             }}
           />
         );
+      case 'tracking':
+        return <OrderTracking />;
       default:
         return <ProductList onAddToCart={addToCart} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header 
         cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
         currentView={currentView}
@@ -98,12 +102,14 @@ function MainApp() {
         onShowAuth={() => setShowAuthModal(true)}
       />
       
-      <main>
+      <main className="flex-1">
         <Routes>
           <Route path="/" element={renderContent()} />
           <Route path="/track-order" element={<OrderTracking />} />
         </Routes>
       </main>
+
+      <Footer />
 
       <AuthModal
         isOpen={showAuthModal}

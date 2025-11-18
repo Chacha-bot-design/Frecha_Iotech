@@ -1,63 +1,149 @@
 // src/components/OrderSuccess.js
 import React from 'react';
+import './OrderSuccess.css';
 
 const OrderSuccess = ({ orderData, onContinueShopping }) => {
+  if (!orderData) {
+    return (
+      <section className="success-section">
+        <div className="container">
+          <div className="success-container">
+            <div className="text-center">
+              <h1 className="success-title">Order Not Found</h1>
+              <p className="success-message">There was an issue with your order. Please contact support.</p>
+              <button onClick={onContinueShopping} className="continue-btn">
+                Continue Shopping
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-TZ', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatCurrency = (amount) => {
+    return `TZS ${amount.toLocaleString()}`;
+  };
+
   return (
-    <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md text-center">
-      <div className="text-green-500 text-6xl mb-4">✓</div>
-      <h2 className="text-3xl font-bold text-gray-800 mb-4">Order Placed Successfully!</h2>
-      
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-        <p className="text-lg text-green-800 mb-2">
-          Thank you for your order, <strong>{orderData?.customer_name || 'Customer'}</strong>!
-        </p>
-        <p className="text-green-700">
-          Your order number is: <strong>{orderData?.order_number || orderData?.order_id}</strong>
-        </p>
-        {orderData?.tracking_number && (
-          <p className="text-green-700 mt-2">
-            Tracking number: <strong>{orderData.tracking_number}</strong>
+    <section className="success-section">
+      <div className="container">
+        <div className="success-container">
+          {/* Success Icon and Title */}
+          <div className="success-icon">
+            <i className="bi bi-check-lg"></i>
+          </div>
+          
+          <h1 className="success-title">Order Confirmed!</h1>
+          <p className="success-subtitle">Thank you for your purchase</p>
+          <p className="success-message">
+            Your order has been successfully placed and is being processed. 
+            We've sent a confirmation email with all the details.
           </p>
-        )}
-      </div>
 
-      <div className="text-left bg-gray-50 p-4 rounded-lg mb-6">
-        <h3 className="font-semibold mb-3">What happens next?</h3>
-        <ul className="list-disc list-inside space-y-2 text-gray-600">
-          <li>You will receive a confirmation email at <strong>{orderData?.customer_email}</strong></li>
-          <li>We'll send you updates about your order status</li>
-          <li>Our team will process your order within 24 hours</li>
-          <li>You'll be notified when your order ships</li>
-        </ul>
-      </div>
+          {/* Tracking Information */}
+          <div className="tracking-info">
+            <div className="tracking-title">Tracking Number</div>
+            <div className="tracking-number">TRK-{orderData.id.split('-')[1]}</div>
+            <div className="tracking-note">
+              Use this number to track your order status
+            </div>
+          </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <h4 className="font-semibold text-blue-800 mb-2">Keep your order details safe!</h4>
-        <p className="text-blue-700 text-sm">
-          Use order number <strong>{orderData?.order_number || orderData?.order_id}</strong> to track your order status.
-        </p>
-        {orderData?.tracking_number && (
-          <p className="text-blue-700 text-sm mt-1">
-            Tracking number: <strong>{orderData.tracking_number}</strong>
-          </p>
-        )}
-      </div>
+          {/* Order Details */}
+          <div className="order-details">
+            <div className="detail-section">
+              <h3 className="detail-title">Order Information</h3>
+              <div className="detail-grid">
+                <div className="detail-item">
+                  <div className="detail-label">Order ID</div>
+                  <div className="detail-value order-id">{orderData.id}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label">Order Date</div>
+                  <div className="detail-value">{formatDate(orderData.orderDate)}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label">Estimated Delivery</div>
+                  <div className="detail-value">{formatDate(orderData.estimatedDelivery)}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label">Total Amount</div>
+                  <div className="detail-value">{formatCurrency(orderData.total)}</div>
+                </div>
+              </div>
+            </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <button
-          onClick={onContinueShopping}
-          className="bg-blue-500 text-white py-3 px-8 rounded-md hover:bg-blue-600 font-semibold"
-        >
-          Continue Shopping
-        </button>
-        <button
-          onClick={() => window.location.href = '/track-order'}
-          className="bg-green-500 text-white py-3 px-8 rounded-md hover:bg-green-600 font-semibold"
-        >
-          Track Your Order
-        </button>
+            <div className="detail-section">
+              <h3 className="detail-title">Customer Information</h3>
+              <div className="detail-grid">
+                <div className="detail-item">
+                  <div className="detail-label">Customer Name</div>
+                  <div className="detail-value">{orderData.customer.name}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label">Email</div>
+                  <div className="detail-value">{orderData.customer.email}</div>
+                </div>
+                <div className="detail-item">
+                  <div className="detail-label">Phone</div>
+                  <div className="detail-value">{orderData.customer.phone}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="detail-section">
+              <h3 className="detail-title">Shipping Address</h3>
+              <div className="detail-item">
+                <div className="detail-value">
+                  {orderData.shippingAddress.address}<br />
+                  {orderData.shippingAddress.city}, {orderData.shippingAddress.region}<br />
+                  {orderData.shippingAddress.postalCode}
+                </div>
+              </div>
+            </div>
+
+            <div className="detail-section">
+              <h3 className="detail-title">Order Items</h3>
+              {orderData.items.map(item => (
+                <div key={item.id} className="detail-item">
+                  <div className="detail-value">
+                    {item.name} × {item.quantity} - {formatCurrency(item.price * item.quantity)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="success-actions">
+            <button onClick={onContinueShopping} className="continue-btn">
+              <i className="bi bi-cart"></i>
+              Continue Shopping
+            </button>
+            <button onClick={() => window.print()} className="print-btn">
+              <i className="bi bi-printer"></i>
+              Print Receipt
+            </button>
+            <button 
+              onClick={() => window.location.href = '/track-order'} 
+              className="track-btn"
+            >
+              <i className="bi bi-truck"></i>
+              Track Order
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

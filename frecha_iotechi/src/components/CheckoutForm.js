@@ -1,34 +1,31 @@
-// components/CheckoutForm.js
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { AuthProvider, useAuth } from './AuthContext';
-import AuthModal from './AuthModal';
+// src/components/CheckoutForm.js
+import React, { useState } from 'react';
+import './CheckoutForm.css';
 
 const CheckoutForm = ({ cartItems, total, onOrderSuccess, onBackToCart }) => {
   const [formData, setFormData] = useState({
-    customer_name: '',
-    customer_email: '',
-    customer_phone: '',
-    notify_via_email: true,
-    notify_via_sms: false,
-    shipping_address: '',
-    payment_method: 'credit_card'
+    // Personal Information
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    
+    // Shipping Address
+    address: '',
+    city: '',
+    region: '',
+    postalCode: '',
+    
+    // Payment
+    paymentMethod: 'credit-card',
+    
+    // Additional
+    notes: '',
+    subscribe: false,
+    terms: false
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const { user, isAuthenticated } = useAuth();
 
-  // Pre-fill form if user is authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      setFormData(prev => ({
-        ...prev,
-        customer_name: `${user.first_name} ${user.last_name}`.trim() || user.username,
-        customer_email: user.email
-      }));
-    }
-  }, [isAuthenticated, user]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -40,180 +37,321 @@ const CheckoutForm = ({ cartItems, total, onOrderSuccess, onBackToCart }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
+    setIsSubmitting(true);
 
-    try {
+    // Simulate API call
+    setTimeout(() => {
       const orderData = {
-        ...formData,
-        items: cartItems.map(item => ({
-          product_name: item.name,
-          quantity: item.quantity,
-          price: item.price
-        })),
-        total_amount: total
+        id: 'ORD-' + Date.now(),
+        items: cartItems,
+        total: total + 10000 + total * 0.18, // shipping + tax
+        customer: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          phone: formData.phone
+        },
+        shippingAddress: {
+          address: formData.address,
+          city: formData.city,
+          region: formData.region,
+          postalCode: formData.postalCode
+        },
+        orderDate: new Date().toISOString(),
+        estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       };
 
-      const response = await axios.post('/api/orders/', orderData);
-
-      if (response.data.success) {
-        onOrderSuccess(response.data);
-      } else {
-        setError('Failed to place order. Please try again.');
-      }
-    } catch (err) {
-      console.error('Order error:', err);
-      setError(err.response?.data?.error || 'Failed to place order. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+      setIsSubmitting(false);
+      onOrderSuccess(orderData);
+    }, 2000);
   };
 
-  const handleAuthSuccess = () => {
-    // Form will be auto-filled due to useEffect
-  };
+  const shippingCost = 10000;
+  const tax = total * 0.18;
+  const finalTotal = total + shippingCost + tax;
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Checkout</h2>
-      
-      {/* Auth Status */}
-      <div className="mb-6">
-        {isAuthenticated ? (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-800 font-medium">
-                  Signed in as {user?.username}
-                </p>
-                <p className="text-green-600 text-sm">
-                  Your orders will be saved to your account
-                </p>
+    <section className="checkout-section">
+      <div className="container">
+        <div className="checkout-header">
+          <h1>Checkout</h1>
+          <p className="text-gray-600">Complete your order with secure payment</p>
+        </div>
+
+        <div className="checkout-content">
+          <form onSubmit={handleSubmit} className="checkout-form">
+            {/* Personal Information */}
+            <div className="form-section">
+              <h3 className="section-title">Personal Information</h3>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">First Name *</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Last Name *</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label className="form-label">Email Address *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label className="form-label">Phone Number *</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
               </div>
+            </div>
+
+            {/* Shipping Address */}
+            <div className="form-section">
+              <h3 className="section-title">Shipping Address</h3>
+              <div className="form-grid">
+                <div className="form-group full-width">
+                  <label className="form-label">Street Address *</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">City *</label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Region *</label>
+                  <select
+                    name="region"
+                    value={formData.region}
+                    onChange={handleInputChange}
+                    className="form-select"
+                    required
+                  >
+                    <option value="">Select Region</option>
+                    <option value="dar-es-salaam">Dar es Salaam</option>
+                    <option value="arusha">Arusha</option>
+                    <option value="dodoma">Dodoma</option>
+                    <option value="mbeya">Mbeya</option>
+                    <option value="mwanza">Mwanza</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Postal Code</label>
+                  <input
+                    type="text"
+                    name="postalCode"
+                    value={formData.postalCode}
+                    onChange={handleInputChange}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Method */}
+            <div className="form-section">
+              <h3 className="section-title">Payment Method</h3>
+              <div className="payment-methods">
+                <div className="payment-method">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="credit-card"
+                    id="credit-card"
+                    checked={formData.paymentMethod === 'credit-card'}
+                    onChange={handleInputChange}
+                    className="payment-radio"
+                  />
+                  <label htmlFor="credit-card" className="payment-label">
+                    <i className="bi bi-credit-card payment-icon"></i>
+                    <span>Credit Card</span>
+                  </label>
+                </div>
+                <div className="payment-method">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="mobile-money"
+                    id="mobile-money"
+                    checked={formData.paymentMethod === 'mobile-money'}
+                    onChange={handleInputChange}
+                    className="payment-radio"
+                  />
+                  <label htmlFor="mobile-money" className="payment-label">
+                    <i className="bi bi-phone payment-icon"></i>
+                    <span>Mobile Money</span>
+                  </label>
+                </div>
+                <div className="payment-method">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="bank-transfer"
+                    id="bank-transfer"
+                    checked={formData.paymentMethod === 'bank-transfer'}
+                    onChange={handleInputChange}
+                    className="payment-radio"
+                  />
+                  <label htmlFor="bank-transfer" className="payment-label">
+                    <i className="bi bi-bank payment-icon"></i>
+                    <span>Bank Transfer</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="form-section">
+              <h3 className="section-title">Additional Information</h3>
+              <div className="form-group full-width">
+                <label className="form-label">Order Notes</label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  className="form-textarea"
+                  placeholder="Any special instructions for your order..."
+                />
+              </div>
+              <div className="form-row">
+                <div className="checkbox-group">
+                  <input
+                    type="checkbox"
+                    name="subscribe"
+                    id="subscribe"
+                    checked={formData.subscribe}
+                    onChange={handleInputChange}
+                    className="checkbox-input"
+                  />
+                  <label htmlFor="subscribe" className="checkbox-label">
+                    Subscribe to our newsletter
+                  </label>
+                </div>
+                <div className="checkbox-group">
+                  <input
+                    type="checkbox"
+                    name="terms"
+                    id="terms"
+                    checked={formData.terms}
+                    onChange={handleInputChange}
+                    className="checkbox-input"
+                    required
+                  />
+                  <label htmlFor="terms" className="checkbox-label">
+                    I agree to the terms and conditions *
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-actions">
               <button
-                onClick={() => setShowAuthModal(true)}
-                className="text-green-600 hover:text-green-800 text-sm"
+                type="button"
+                onClick={onBackToCart}
+                className="back-btn"
               >
-                Switch Account
+                <i className="bi bi-arrow-left"></i>
+                Back to Cart
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !formData.terms}
+                className="submit-btn"
+              >
+                {isSubmitting ? (
+                  <>
+                    <i className="bi bi-arrow-repeat spin"></i>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-lock-fill"></i>
+                    Complete Order
+                  </>
+                )}
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-800 font-medium">
-                  Continue as guest or create an account
-                </p>
-                <p className="text-blue-600 text-sm">
-                  Create an account to easily track all your orders
-                </p>
+          </form>
+
+          {/* Order Summary */}
+          <div className="order-summary">
+            <h3 className="summary-title">Order Summary</h3>
+            
+            <div className="summary-items">
+              {cartItems.map(item => (
+                <div key={item.id} className="summary-item">
+                  <div>
+                    <div className="item-name">{item.name}</div>
+                    <div className="item-quantity">Qty: {item.quantity}</div>
+                  </div>
+                  <div className="item-price">
+                    TZS {(item.price * item.quantity).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="summary-totals">
+              <div className="total-row">
+                <span>Subtotal</span>
+                <span>TZS {total.toLocaleString()}</span>
               </div>
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Sign In / Sign Up
-              </button>
+              <div className="total-row">
+                <span>Shipping</span>
+                <span>TZS {shippingCost.toLocaleString()}</span>
+              </div>
+              <div className="total-row">
+                <span>Tax (18%)</span>
+                <span>TZS {tax.toLocaleString()}</span>
+              </div>
+              <div className="total-row final">
+                <span>Total</span>
+                <span className="final-total">TZS {finalTotal.toLocaleString()}</span>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Customer Information */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Customer Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name *
-              </label>
-              <input
-                type="text"
-                name="customer_name"
-                value={formData.customer_name}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address *
-              </label>
-              <input
-                type="email"
-                name="customer_email"
-                value={formData.customer_email}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number *
-              </label>
-              <input
-                type="tel"
-                name="customer_phone"
-                value={formData.customer_phone}
-                onChange={handleInputChange}
-                required
-                placeholder="+1234567890"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Shipping Address *
-              </label>
-              <input
-                type="text"
-                name="shipping_address"
-                value={formData.shipping_address}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Rest of your form remains the same... */}
-
-        <div className="flex space-x-4">
-          <button
-            type="button"
-            onClick={onBackToCart}
-            className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-md hover:bg-gray-600"
-          >
-            Back to Cart
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 bg-green-500 text-white py-3 px-4 rounded-md hover:bg-green-600 disabled:opacity-50 font-semibold"
-          >
-            {loading ? 'Placing Order...' : 'Place Order'}
-          </button>
-        </div>
-      </form>
-
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={handleAuthSuccess}
-        showGuestOption={true}
-      />
-    </div>
+    </section>
   );
 };
 

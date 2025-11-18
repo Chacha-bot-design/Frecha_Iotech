@@ -1,151 +1,191 @@
 // src/components/Header.js
-import React from 'react';
-import { useAuth } from './AuthContext'; // Same directory
+import React, { useState } from 'react';
+import { useAuth } from './AuthContext';
 import './Header.css';
 
 const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
   const { isAuthenticated, user, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
-    logout(); // No await needed since it's synchronous in your AuthContext
+    logout();
     onNavigate('products');
+    setMobileMenuOpen(false);
+  };
+
+  const handleNavClick = (view) => {
+    onNavigate(view);
+    setMobileMenuOpen(false);
   };
 
   return (
     <header className="header">
-      <div className="container headerContent">
-        {/* Logo */}
-        <div 
-          className="logo"
-          onClick={() => onNavigate('products')}
-        >
-          <i className="bi bi-wifi"></i>
-          Frecha Iotech
-        </div>
+      <div className="container">
+        <div className="header-content">
+          {/* Logo */}
+        
+<div 
+  className="logo-container"
+  onClick={() => onNavigate('products')}
+>
+  <div className="logo-svg">
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="18" fill="white" fillOpacity="0.1" stroke="white" strokeWidth="2"/>
+      <path d="M20 8C13.3726 8 8 13.3726 8 20C8 26.6274 13.3726 32 20 32" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M20 12C15.5817 12 12 15.5817 12 20C12 24.4183 15.5817 28 20 28" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="20" cy="20" r="4" fill="white"/>
+    </svg>
+  </div>
+  <div className="logo-text">
+    <span className="company-name blink">Frecha Iotech</span>
+  </div>
+</div>
 
-        {/* Navigation */}
-        <nav className="nav">
-          <ul>
-            <li>
-              <a 
-                href="#home" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  onNavigate('products');
-                }}
-                className={currentView === 'products' ? 'active' : ''}
-              >
-                <i className="bi bi-house"></i>
-                Home
-              </a>
-            </li>
-            <li>
-              <a href="#services">
-                <i className="bi bi-gear"></i>
-                Services
-              </a>
-            </li>
-            <li>
-              <a href="#products">
-                <i className="bi bi-grid"></i>
-                Products
-              </a>
-            </li>
-            <li>
-              <a 
-                href="#order"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onNavigate('cart');
-                }}
-              >
-                <i className="bi bi-cart"></i>
-                Order
-              </a>
-            </li>
-            <li>
-              <a 
-                href="#track-order"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onNavigate('tracking');
-                }}
-              >
-                <i className="bi bi-truck"></i>
-                Track Order
-              </a>
-            </li>
-            
-            {/* User Profile / Auth */}
-            {isAuthenticated ? (
-              <li className="userMenu">
-                <div className="dropdown">
-                  <button className="dropdownToggle">
-                    <i className="bi bi-person-circle"></i>
-                    {user?.username || user?.name || 'User'}
-                  </button>
-                  <div className="dropdownContent">
-                    <a 
-                      href="#profile"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onNavigate('profile');
-                      }}
-                    >
-                      <i className="bi bi-person"></i>
-                      My Profile
-                    </a>
-                    <a 
-                      href="#orders"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onNavigate('orders');
-                      }}
-                    >
-                      <i className="bi bi-bag-check"></i>
-                      My Orders
-                    </a>
-                    <div className="dropdownDivider"></div>
-                    <a 
-                      href="#logout"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleLogout();
-                      }}
-                      className="logoutLink"
-                    >
-                      <i className="bi bi-box-arrow-right"></i>
-                      Sign Out
-                    </a>
-                  </div>
-                </div>
-              </li>
-            ) : (
+          {/* Desktop Navigation */}
+          <nav className="nav">
+            <ul>
               <li>
                 <button 
-                  className="authBtn"
-                  onClick={onShowAuth}
+                  className={`nav-link ${currentView === 'products' ? 'active' : ''}`}
+                  onClick={() => onNavigate('products')}
                 >
-                  <i className="bi bi-person"></i>
-                  Sign In
+                  <i className="bi bi-house"></i>
+                  Home
                 </button>
               </li>
-            )}
+              <li>
+                <button className="nav-link">
+                  <i className="bi bi-gear"></i>
+                  Services
+                </button>
+              </li>
+              <li>
+                <button className="nav-link">
+                  <i className="bi bi-grid"></i>
+                  Products
+                </button>
+              </li>
+              <li>
+                <button 
+                  className="nav-link"
+                  onClick={() => onNavigate('cart')}
+                >
+                  <i className="bi bi-cart"></i>
+                  Order
+                </button>
+              </li>
+              <li>
+                <button 
+                  className="nav-link"
+                  onClick={() => onNavigate('tracking')}
+                >
+                  <i className="bi bi-truck"></i>
+                  Track Order
+                </button>
+              </li>
+              
+              {/* User Auth Section */}
+              {isAuthenticated ? (
+                <li className="user-menu">
+                  <div className="dropdown">
+                    <button className="dropdown-toggle">
+                      <i className="bi bi-person-circle"></i>
+                      {user?.username || user?.name || 'User'}
+                    </button>
+                    <div className="dropdown-content">
+                      <button onClick={() => handleNavClick('profile')}>
+                        <i className="bi bi-person"></i>
+                        My Profile
+                      </button>
+                      <button onClick={() => handleNavClick('orders')}>
+                        <i className="bi bi-bag-check"></i>
+                        My Orders
+                      </button>
+                      <div className="dropdown-divider"></div>
+                      <button 
+                        onClick={handleLogout}
+                        className="logout-link"
+                      >
+                        <i className="bi bi-box-arrow-right"></i>
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ) : (
+                <li>
+                  <button 
+                    className="auth-btn"
+                    onClick={onShowAuth}
+                  >
+                    <i className="bi bi-person"></i>
+                    Sign In
+                  </button>
+                </li>
+              )}
 
-            {/* Shopping Cart */}
-            <li className="cartIcon">
-              <button 
-                className="cartBtn"
-                onClick={() => onNavigate('cart')}
-              >
-                <i className="bi bi-cart3"></i>
-                {cartItemsCount > 0 && (
-                  <span className="cartBadge">{cartItemsCount}</span>
-                )}
+              {/* Shopping Cart */}
+              <li className="cart-icon">
+                <button 
+                  className="cart-btn"
+                  onClick={() => onNavigate('cart')}
+                >
+                  <i className="bi bi-cart3"></i>
+                  {cartItemsCount > 0 && (
+                    <span className="cart-badge">{cartItemsCount}</span>
+                  )}
+                </button>
+              </li>
+            </ul>
+          </nav>
+
+          {/* Mobile Menu Button */}
+          <button 
+            className="mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <i className="bi bi-list" style={{ fontSize: '1.5rem' }}></i>
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
+          <nav className="mobile-nav">
+            <button onClick={() => handleNavClick('products')}>
+              <i className="bi bi-house"></i>Home
+            </button>
+            <button>
+              <i className="bi bi-gear"></i>Services
+            </button>
+            <button>
+              <i className="bi bi-grid"></i>Products
+            </button>
+            <button onClick={() => handleNavClick('cart')}>
+              <i className="bi bi-cart"></i>Order
+            </button>
+            <button onClick={() => handleNavClick('tracking')}>
+              <i className="bi bi-truck"></i>Track Order
+            </button>
+            
+            {isAuthenticated ? (
+              <>
+                <button onClick={() => handleNavClick('profile')}>
+                  <i className="bi bi-person"></i>My Profile
+                </button>
+                <button onClick={() => handleNavClick('orders')}>
+                  <i className="bi bi-bag-check"></i>My Orders
+                </button>
+                <button onClick={handleLogout}>
+                  <i className="bi bi-box-arrow-right"></i>Sign Out
+                </button>
+              </>
+            ) : (
+              <button onClick={onShowAuth}>
+                <i className="bi bi-person"></i>Sign In
               </button>
-            </li>
-          </ul>
-        </nav>
+            )}
+          </nav>
+        </div>
       </div>
     </header>
   );
