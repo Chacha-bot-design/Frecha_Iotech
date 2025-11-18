@@ -1,13 +1,13 @@
 // src/components/Header.js
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from './AuthContext'; // Same directory
 import './Header.css';
 
 const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
-  const { isAuthenticated, currentUser, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
 
   const handleLogout = async () => {
-    await logout();
+    logout(); // No await needed since it's synchronous in your AuthContext
     onNavigate('products');
   };
 
@@ -82,7 +82,7 @@ const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
                 <div className="dropdown">
                   <button className="dropdownToggle">
                     <i className="bi bi-person-circle"></i>
-                    {currentUser?.name || 'User'}
+                    {user?.username || user?.name || 'User'}
                   </button>
                   <div className="dropdownContent">
                     <a 

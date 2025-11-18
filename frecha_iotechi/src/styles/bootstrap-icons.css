@@ -1,0 +1,121 @@
+/* src/styles/bootstrap-icons.css */
+@font-face {
+  font-display: block;
+  font-family: "bootstrap-icons";
+  src: url("../fonts/bootstrap-icons.woff2") format("woff2"),
+       url("../fonts/bootstrap-icons.woff") format("woff");
+}
+
+.bi::before,
+[class^="bi-"]::before,
+[class*=" bi-"]::before {
+  display: inline-block;
+  font-family: bootstrap-icons !important;
+  font-style: normal;
+  font-weight: normal !important;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  vertical-align: -0.125em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Icon definitions - Add all icons your application uses */
+.bi-wifi::before { content: "\f66b"; }
+.bi-house::before { content: "\f425"; }
+.bi-house-door::before { content: "\f426"; }
+.bi-house-fill::before { content: "\f427"; }
+.bi-gear::before { content: "\f3e5"; }
+.bi-gear-fill::before { content: "\f3e6"; }
+.bi-grid::before { content: "\f3cb"; }
+.bi-grid-3x3::before { content: "\f3cc"; }
+.bi-grid-fill::before { content: "\f3cd"; }
+.bi-cart::before { content: "\f1f7"; }
+.bi-cart2::before { content: "\f1f8"; }
+.bi-cart3::before { content: "\f1f9"; }
+.bi-cart4::before { content: "\f1fa"; }
+.bi-cart-check::before { content: "\f1fb"; }
+.bi-cart-dash::before { content: "\f1fc"; }
+.bi-cart-plus::before { content: "\f1fd"; }
+.bi-cart-x::before { content: "\f1fe"; }
+.bi-truck::before { content: "\f5c1"; }
+.bi-truck-flatbed::before { content: "\f5c2"; }
+.bi-person::before { content: "\f4e1"; }
+.bi-person-badge::before { content: "\f4e3"; }
+.bi-person-bounding-box::before { content: "\f4e4"; }
+.bi-person-check::before { content: "\f4e5"; }
+.bi-person-circle::before { content: "\f4e2"; }
+.bi-person-dash::before { content: "\f4e6"; }
+.bi-person-fill::before { content: "\f4e7"; }
+.bi-person-lines-fill::before { content: "\f4e8"; }
+.bi-person-plus::before { content: "\f4e9"; }
+.bi-person-square::before { content: "\f4eb"; }
+.bi-person-x::before { content: "\f4ec"; }
+.bi-bag::before { content: "\f175"; }
+.bi-bag-check::before { content: "\f178"; }
+.bi-bag-dash::before { content: "\f179"; }
+.bi-bag-fill::before { content: "\f17a"; }
+.bi-bag-plus::before { content: "\f17b"; }
+.bi-bag-x::before { content: "\f17c"; }
+.bi-box-arrow-right::before { content: "\f1b8"; }
+.bi-box-arrow-left::before { content: "\f1b7"; }
+.bi-search::before { content: "\f52a"; }
+.bi-search-heart::before { content: "\f52b"; }
+.bi-heart::before { content: "\f417"; }
+.bi-heart-fill::before { content: "\f418"; }
+.bi-heart-half::before { content: "\f41a"; }
+.bi-check-circle::before { content: "\f26a"; }
+.bi-check-circle-fill::before { content: "\f26b"; }
+.bi-x-circle::before { content: "\f622"; }
+.bi-x-circle-fill::before { content: "\f623"; }
+.bi-plus-circle::before { content: "\f4c9"; }
+.bi-plus-circle-fill::before { content: "\f4ca"; }
+.bi-dash-circle::before { content: "\f2a9"; }
+.bi-dash-circle-fill::before { content: "\f2aa"; }
+.bi-info-circle::before { content: "\f431"; }
+.bi-info-circle-fill::before { content: "\f432"; }
+.bi-exclamation-circle::before { content: "\f32c"; }
+.bi-exclamation-circle-fill::before { content: "\f32d"; }
+.bi-arrow-left::before { content: "\f12a"; }
+.bi-arrow-right::before { content: "\f138"; }
+.bi-arrow-up::before { content: "\f148"; }
+.bi-arrow-down::before { content: "\f128"; }
+.bi-chevron-left::before { content: "\f284"; }
+.bi-chevron-right::before { content: "\f285"; }
+.bi-chevron-up::before { content: "\f286"; }
+.bi-chevron-down::before { content: "\f287"; }
+
+/* Utility classes */
+.bi-spin::before {
+  animation: bi-spin 1s linear infinite;
+}
+
+@keyframes bi-spin { 
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.bi-xs::before {
+  font-size: 0.75rem;
+}
+
+.bi-sm::before {
+  font-size: 0.875rem;
+}
+
+.bi-lg::before {
+  font-size: 1.25rem;
+}
+
+.bi-xl::before {
+  font-size: 1.5rem;
+}
+
+.bi-2xl::before {
+  font-size: 2rem;
+}
+
+.bi-3xl::before {
+  font-size: 3rem;
+}

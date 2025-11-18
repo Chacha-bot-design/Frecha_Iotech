@@ -1,4 +1,4 @@
-// src/context/AuthContext.js
+// src/components/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 

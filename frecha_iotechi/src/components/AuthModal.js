@@ -1,23 +1,20 @@
-// components/AuthModal.js
+// src/components/AuthModal.js
 import React, { useState } from 'react';
-import { AuthProvider, useAuth } from './AuthContext';
+import { useAuth } from './AuthContext'; // Same directory
 
-const AuthModal = ({ isOpen, onClose, onSuccess, showGuestOption = true }) => {
-  const [activeTab, setActiveTab] = useState('login');
+function AuthModal({ isOpen, onClose, onSuccess, showGuestOption = true }) {
+  const { login, signup } = useAuth();
+  const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
-    username: '',
+    name: '',
     email: '',
     password: '',
-    first_name: '',
-    last_name: ''
+    confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const { signup, login } = useAuth();
+  const [error, setError] = useState('');
 
-  if (!isOpen) return null;
-
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -27,230 +24,132 @@ const AuthModal = ({ isOpen, onClose, onSuccess, showGuestOption = true }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
+    setError('');
 
     try {
       let result;
-      if (activeTab === 'login') {
+      
+      if (isLogin) {
         result = await login({
-          username: formData.username,
+          email: formData.email,
           password: formData.password
         });
       } else {
-        result = await signup(formData);
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+        
+        result = await signup({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        });
       }
 
       if (result.success) {
-        setMessage(result.message);
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-          resetForm();
-        }, 1000);
+        onSuccess();
+        onClose();
       } else {
-        setMessage(result.message);
+        setError(result.message);
       }
-    } catch (error) {
-      setMessage('An error occurred. Please try again.');
+    } catch (err) {
+      setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      username: '',
-      email: '',
-      password: '',
-      first_name: '',
-      last_name: ''
-    });
-    setMessage('');
-  };
-
-  const handleGuestContinue = () => {
-    onClose();
-  };
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg max-w-md w-full mx-4">
-        {/* Header */}
-        <div className="border-b px-6 py-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">
-              {activeTab === 'login' ? 'Sign In' : 'Create Account'}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-          </div>
-          
-          {/* Tabs */}
-          <div className="flex mt-4">
-            <button
-              className={`flex-1 py-2 text-center font-medium ${
-                activeTab === 'login' 
-                  ? 'text-blue-600 border-b-2 border-blue-600' 
-                  : 'text-gray-500'
-              }`}
-              onClick={() => setActiveTab('login')}
-            >
-              Sign In
-            </button>
-            <button
-              className={`flex-1 py-2 text-center font-medium ${
-                activeTab === 'signup' 
-                  ? 'text-blue-600 border-b-2 border-blue-600' 
-                  : 'text-gray-500'
-              }`}
-              onClick={() => setActiveTab('signup')}
-            >
-              Sign Up
-            </button>
-          </div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {message && (
-            <div className={`p-3 rounded ${
-              message.includes('success') 
-                ? 'bg-green-100 text-green-700' 
-                : 'bg-red-100 text-red-700'
-            }`}>
-              {message}
+    <div className="auth-modal-overlay">
+      <div className="auth-modal">
+        <h2>{isLogin ? 'Sign In' : 'Sign Up'}</h2>
+        
+        {error && <div className="error-message">{error}</div>}
+        
+        <form onSubmit={handleSubmit}>
+          {!isLogin && (
+            <div className="form-group">
+              <label>Name</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
             </div>
           )}
-
-          {activeTab === 'login' ? (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    name="first_name"
-                    value={formData.first_name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    name="last_name"
-                    value={formData.last_name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Username *
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password *
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </>
+          
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          {!isLogin && (
+            <div className="form-group">
+              <label>Confirm Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+            </div>
           )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {loading ? 'Please wait...' : (activeTab === 'login' ? 'Sign In' : 'Create Account')}
+          
+          <button type="submit" disabled={loading}>
+            {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
           </button>
         </form>
-
-        {/* Guest Option */}
+        
+        <div className="auth-switch">
+          <button 
+            type="button"
+            onClick={() => setIsLogin(!isLogin)}
+          >
+            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+          </button>
+        </div>
+        
         {showGuestOption && (
-          <div className="border-t px-6 py-4">
-            <button
-              onClick={handleGuestContinue}
-              className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          <div className="guest-option">
+            <button 
+              type="button"
+              onClick={onClose}
             >
               Continue as Guest
             </button>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              You can still track your order with your email and order number
-            </p>
           </div>
         )}
+        
+        <button className="close-button" onClick={onClose}>
+          ×
+        </button>
       </div>
     </div>
   );
-};
+}
 
 export default AuthModal;
