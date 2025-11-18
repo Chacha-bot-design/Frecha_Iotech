@@ -1,7 +1,7 @@
 // src/App.js
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './AuthContext';
 import Header from './components/Header';
 import ProductList from './components/ProductList';
 import ShoppingCart from './components/ShoppingCart';
@@ -11,7 +11,8 @@ import OrderTracking from './components/OrderTracking';
 import AuthModal from './components/AuthModal';
 import './App.css';
 
-function App() {
+// Main App Content Component
+function AppContent() {
   const [currentView, setCurrentView] = useState('products');
   const [cartItems, setCartItems] = useState([]);
   const [orderData, setOrderData] = useState(null);
@@ -92,30 +93,34 @@ function App() {
   };
 
   return (
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        onShowAuth={() => setShowAuthModal(true)}
+      />
+      
+      <main>
+        {renderContent()}
+      </main>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => setShowAuthModal(false)}
+        showGuestOption={true}
+      />
+    </div>
+  );
+}
+
+// Main App Component
+function App() {
+  return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Header 
-            cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-            currentView={currentView}
-            onNavigate={setCurrentView}
-            onShowAuth={() => setShowAuthModal(true)}
-          />
-          
-          <main>
-            <Routes>
-              <Route path="/" element={renderContent()} />
-              <Route path="/track-order" element={<OrderTracking />} />
-            </Routes>
-          </main>
-
-          <AuthModal
-            isOpen={showAuthModal}
-            onClose={() => setShowAuthModal(false)}
-            onSuccess={() => setShowAuthModal(false)}
-            showGuestOption={true}
-          />
-        </div>
+        <AppContent />
       </Router>
     </AuthProvider>
   );
