@@ -1,10 +1,10 @@
+// src/components/Header.js
 import React from 'react';
-import styles from './Header.css';
-import { AuthProvider, useAuth } from './AuthContext';
-
+import { useAuth } from '../context/AuthContext';
+import './Header.css';
 
 const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, currentUser, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
@@ -12,11 +12,11 @@ const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
   };
 
   return (
-    <header className={styles.header}>
-      <div className={`container ${styles.headerContent}`}>
+    <header className="header">
+      <div className="container headerContent">
         {/* Logo */}
         <div 
-          className={styles.logo}
+          className="logo"
           onClick={() => onNavigate('products')}
         >
           <i className="bi bi-wifi"></i>
@@ -24,7 +24,7 @@ const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
         </div>
 
         {/* Navigation */}
-        <nav className={styles.nav}>
+        <nav className="nav">
           <ul>
             <li>
               <a 
@@ -33,13 +33,24 @@ const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
                   e.preventDefault();
                   onNavigate('products');
                 }}
-                className={currentView === 'products' ? styles.active : ''}
+                className={currentView === 'products' ? 'active' : ''}
               >
+                <i className="bi bi-house"></i>
                 Home
               </a>
             </li>
-            <li><a href="#services">Services</a></li>
-            <li><a href="#products">Products</a></li>
+            <li>
+              <a href="#services">
+                <i className="bi bi-gear"></i>
+                Services
+              </a>
+            </li>
+            <li>
+              <a href="#products">
+                <i className="bi bi-grid"></i>
+                Products
+              </a>
+            </li>
             <li>
               <a 
                 href="#order"
@@ -48,30 +59,32 @@ const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
                   onNavigate('cart');
                 }}
               >
+                <i className="bi bi-cart"></i>
                 Order
               </a>
             </li>
             <li>
               <a 
-                href="/track-order"
+                href="#track-order"
                 onClick={(e) => {
                   e.preventDefault();
                   onNavigate('tracking');
                 }}
               >
+                <i className="bi bi-truck"></i>
                 Track Order
               </a>
             </li>
             
             {/* User Profile / Auth */}
             {isAuthenticated ? (
-              <li className={styles.userMenu}>
-                <div className={styles.dropdown}>
-                  <button className={styles.dropdownToggle}>
+              <li className="userMenu">
+                <div className="dropdown">
+                  <button className="dropdownToggle">
                     <i className="bi bi-person-circle"></i>
-                    {user?.username}
+                    {currentUser?.name || 'User'}
                   </button>
-                  <div className={styles.dropdownContent}>
+                  <div className="dropdownContent">
                     <a 
                       href="#profile"
                       onClick={(e) => {
@@ -86,20 +99,20 @@ const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
                       href="#orders"
                       onClick={(e) => {
                         e.preventDefault();
-                        onNavigate('profile');
+                        onNavigate('orders');
                       }}
                     >
                       <i className="bi bi-bag-check"></i>
                       My Orders
                     </a>
-                    <div className={styles.dropdownDivider}></div>
+                    <div className="dropdownDivider"></div>
                     <a 
                       href="#logout"
                       onClick={(e) => {
                         e.preventDefault();
                         handleLogout();
                       }}
-                      className={styles.logoutLink}
+                      className="logoutLink"
                     >
                       <i className="bi bi-box-arrow-right"></i>
                       Sign Out
@@ -110,7 +123,7 @@ const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
             ) : (
               <li>
                 <button 
-                  className={styles.authBtn}
+                  className="authBtn"
                   onClick={onShowAuth}
                 >
                   <i className="bi bi-person"></i>
@@ -120,14 +133,14 @@ const Header = ({ cartItemsCount, currentView, onNavigate, onShowAuth }) => {
             )}
 
             {/* Shopping Cart */}
-            <li className={styles.cartIcon}>
+            <li className="cartIcon">
               <button 
-                className={styles.cartBtn}
+                className="cartBtn"
                 onClick={() => onNavigate('cart')}
               >
                 <i className="bi bi-cart3"></i>
                 {cartItemsCount > 0 && (
-                  <span className={styles.cartBadge}>{cartItemsCount}</span>
+                  <span className="cartBadge">{cartItemsCount}</span>
                 )}
               </button>
             </li>
