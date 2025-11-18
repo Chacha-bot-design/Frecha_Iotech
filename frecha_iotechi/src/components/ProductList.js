@@ -1,195 +1,281 @@
 // src/components/ProductList.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './ProductList.css';
 
 const ProductList = ({ onAddToCart }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('electronics');
+  const [error, setError] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // Update this URL to match your Django API endpoint
+  const API_BASE = 'https://frecha-iotech.onrender.com'; // Adjust to your Django server
 
   useEffect(() => {
     fetchProducts();
-  }, [activeTab]);
+  }, []);
 
   const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      let response;
-      
-      if (activeTab === 'electronics') {
-        response = await axios.get('/store/api/electronics/');
-      } else if (activeTab === 'routers') {
-        response = await axios.get('/store/api/public-routers/');
-      } else if (activeTab === 'bundles') {
-        response = await axios.get('/store/api/public-bundles/');
-      }
-      
-      setProducts(response.data || []);
+      // Fetch data from your Django API
+      const [electronicsRes, routersRes, dataPlansRes, bundlesRes] = await Promise.all([
+        axios.get(`${API_BASE}/electronics-devices/`).catch(() => ({ data: [] })),
+        axios.get(`${API_BASE}/router-products/`).catch(() => ({ data: [] })),
+        axios.get(`${API_BASE}/data-plans/`).catch(() => ({ data: [] })),
+        axios.get(`${API_BASE}/bundles/`).catch(() => ({ data: [] }))
+      ]);
+
+      // Transform Django data to frontend format
+      const allProducts = [
+        ...electronicsRes.data.map(item => ({
+          id: item.id,
+          name: item.name,
+          category: 'electronics',
+          description: item.description,
+          price: parseFloat(item.price),
+          image: item.image,
+          specifications: item.specifications,
+          type: 'electronics'
+        })),
+        ...routersRes.data.map(item => ({
+          id: item.id,
+          name: item.name,
+          category: 'routers',
+          description: item.description,
+          price: parseFloat(item.price),
+          image: item.image,
+          specifications: item.specifications,
+          type: 'router'
+        })),
+        ...dataPlansRes.data.map(item => ({
+          id: item.id,
+          name: item.name,
+          category: 'data-plans',
+          description: item.description || `${item.data_volume} - ${item.provider_name}`,
+          price: parseFloat(item.price),
+          image: null, // Data plans might not have images
+          features: [`${item.data_volume}`, `${item.validity_days} days`, item.network_type],
+          type: 'data-plan'
+        })),
+        ...bundlesRes.data.map(item => ({
+          id: item.id,
+          name: item.name,
+          category: 'bundles',
+          description: item.description,
+          price: parseFloat(item.actual_price || item.total_price),
+          image: null,
+          features: item.features || [],
+          type: 'bundle'
+        }))
+      ].filter(item => item.price > 0); // Only include items with price
+
+      setProducts(allProducts);
     } catch (err) {
       console.error('Error fetching products:', err);
-      setError('Failed to load products');
+      setError('Failed to load products. Please check if the Django server is running.');
+      
+      // Fallback to sample data if API is not available
+      setProducts(getSampleProducts());
     } finally {
       setLoading(false);
     }
   };
 
+  // Fallback sample data
+  const getSampleProducts = () => [
+    {
+      id: 1,
+      name: "Fiber Optic Router",
+      category: "routers",
+      description: "High-speed fiber optic router for reliable internet connectivity",
+      price: 299.99,
+      image: "/images/router.jpg",
+      type: "router"
+    },
+    {
+      id: 2,
+      name: "4G Data Plan - 10GB",
+      category: "data-plans",
+      description: "Monthly 10GB data plan with unlimited night browsing",
+      price: 25000,
+      image: null,
+      type: "data-plan"
+    }
+  ];
+
+  const categories = [
+    { id: 'all', name: 'All Products' },
+    { id: 'electronics', name: 'Electronics' },
+    { id: 'routers', name: 'Routers' },
+    { id: 'data-plans', name: 'Data Plans' },
+    { id: 'bundles', name: 'Bundles' }
+  ];
+
+  const filteredProducts = selectedCategory === 'all' 
+    ? products 
+    : products.filter(product => product.category === selectedCategory);
+
   const handleAddToCart = (product) => {
-    const cartItem = {
-      id: product.id || Math.random(),
-      name: product.name,
-      price: parseFloat(product.price),
-      quantity: 1,
-      image: product.image,
-      category: activeTab
-    };
-    onAddToCart(cartItem);
+    onAddToCart(product);
+    
+    // Show success notification
+    const event = new CustomEvent('cartNotification', { 
+      detail: { 
+        message: `${product.name} added to cart!`,
+        type: 'success'
+      }
+    });
+    window.dispatchEvent(event);
+  };
+
+  const getCategoryIcon = (category) => {
+    switch (category) {
+      case 'electronics': return 'bi-laptop';
+      case 'routers': return 'bi-router';
+      case 'data-plans': return 'bi-wifi';
+      case 'bundles': return 'bi-box-seam';
+      default: return 'bi-box';
+    }
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
+      <section className="products-section">
+        <div className="container">
+          <div className="products-loading">
+            <i className="bi bi-arrow-repeat spin" style={{ fontSize: '3rem', marginBottom: '1rem' }}></i>
+            <h3>Loading Products from Database...</h3>
+            <p>Fetching latest products from Frecha Iotech</p>
+          </div>
+        </div>
+      </section>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500 text-lg">{error}</p>
-        <button 
-          onClick={fetchProducts}
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Retry
-        </button>
-      </div>
+      <section className="products-section">
+        <div className="container">
+          <div className="products-empty">
+            <i className="bi bi-exclamation-triangle" style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--error)' }}></i>
+            <h3>Connection Issue</h3>
+            <p>{error}</p>
+            <p style={{ fontSize: '0.9rem', color: 'var(--gray-600)', marginTop: '1rem' }}>
+              Make sure your Django server is running on http://localhost:8000
+            </p>
+            <button 
+              onClick={fetchProducts} 
+              className="btn btn-primary"
+              style={{ marginTop: '1rem' }}
+            >
+              <i className="bi bi-arrow-clockwise"></i>
+              Try Again
+            </button>
+          </div>
+        </div>
+      </section>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-8">
-        <button
-          className={`py-2 px-4 font-medium ${
-            activeTab === 'electronics'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setActiveTab('electronics')}
-        >
-          Electronics
-        </button>
-        <button
-          className={`py-2 px-4 font-medium ${
-            activeTab === 'routers'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setActiveTab('routers')}
-        >
-          Routers
-        </button>
-        <button
-          className={`py-2 px-4 font-medium ${
-            activeTab === 'bundles'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setActiveTab('bundles')}
-        >
-          Data Bundles
-        </button>
-      </div>
+    <section className="products-section">
+      <div className="container">
+        <div className="products-header">
+          <h1>Our Products & Services</h1>
+          <p>Premium telecom equipment, data plans, and networking solutions across Tanzania</p>
+        </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <p className="text-gray-500 text-lg">No products available</p>
-          </div>
-        ) : (
-          products.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              {/* Product Image */}
-              <div className="h-48 bg-gray-200 flex items-center justify-center">
+        {/* Category Filter */}
+        <div className="category-filter">
+          {categories.map(category => (
+            <button
+              key={category.id}
+              className={`category-btn ${selectedCategory === category.id ? 'active' : ''}`}
+              onClick={() => setSelectedCategory(category.id)}
+            >
+              <i className={`bi ${getCategoryIcon(category.id)}`}></i>
+              {category.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Products Grid */}
+        <div className="products-grid">
+          {filteredProducts.length === 0 ? (
+            <div className="products-empty">
+              <i className="bi bi-inbox" style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--gray-400)' }}></i>
+              <h3>No Products Found</h3>
+              <p>No products available in this category.</p>
+            </div>
+          ) : (
+            filteredProducts.map(product => (
+              <div key={`${product.type}-${product.id}`} className="product-card">
                 {product.image ? (
                   <img 
                     src={product.image} 
                     alt={product.name}
-                    className="h-full w-full object-cover"
+                    className="product-image"
+                    onError={(e) => {
+                      e.target.src = '/images/placeholder.jpg';
+                    }}
                   />
                 ) : (
-                  <div className="text-gray-400">
-                    <i className="bi bi-image text-4xl"></i>
-                    <p className="mt-2">No Image</p>
+                  <div className="product-image-placeholder">
+                    <i className={`bi ${getCategoryIcon(product.category)}`}></i>
                   </div>
                 )}
-              </div>
-
-              {/* Product Info */}
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {product.name}
-                </h3>
                 
-                {product.description && (
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-                )}
-
-                {product.specifications && (
-                  <p className="text-gray-500 text-xs mb-3">
-                    {product.specifications.length > 100 
-                      ? `${product.specifications.substring(0, 100)}...`
-                      : product.specifications
-                    }
-                  </p>
-                )}
-
-                {/* Bundle specific info */}
-                {product.data_volume && (
-                  <div className="mb-2">
-                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                      {product.data_volume}
-                    </span>
-                    {product.validity_days && (
-                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded ml-1">
-                        {product.validity_days} days
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Provider info for bundles */}
-                {product.provider_name && (
-                  <p className="text-gray-500 text-sm mb-2">
-                    Provider: {product.provider_name}
-                  </p>
-                )}
-
-                {/* Price and Action */}
-                <div className="flex justify-between items-center mt-4">
-                  <span className="text-xl font-bold text-green-600">
-                    TZS {parseFloat(product.price).toLocaleString()}
+                <div className="product-info">
+                  <span className="product-category">
+                    <i className={`bi ${getCategoryIcon(product.category)}`}></i>
+                    {product.category.replace('-', ' ')}
                   </span>
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-                  >
-                    <i className="bi bi-cart-plus"></i>
-                    Add to Cart
-                  </button>
+                  
+                  <h3 className="product-title">{product.name}</h3>
+                  <p className="product-description">{product.description}</p>
+                  
+                  {product.features && product.features.length > 0 && (
+                    <div className="product-features">
+                      {product.features.slice(0, 3).map((feature, index) => (
+                        <span key={index} className="feature-tag">{feature}</span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="product-price">TZS {product.price.toLocaleString()}</div>
+                  
+                  <div className="product-actions">
+                    <button 
+                      className="add-to-cart-btn"
+                      onClick={() => handleAddToCart(product)}
+                    >
+                      <i className="bi bi-cart-plus"></i>
+                      Add to Cart
+                    </button>
+                    <button className="view-details-btn">
+                      <i className="bi bi-info-circle"></i>
+                      Details
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
+
+        {/* API Status Indicator */}
+        <div className="api-status">
+          <small style={{ color: 'var(--gray-500)' }}>
+            <i className="bi bi-database"></i>
+            Connected to Frecha Iotech Database
+          </small>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 
