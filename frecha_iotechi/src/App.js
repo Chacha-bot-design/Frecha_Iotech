@@ -11,7 +11,7 @@ import OrderTracking from './components/OrderTracking';
 import AuthModal from './components/AuthModal';
 import './App.css';
 
-// Main App Content Component
+// This component contains all the app logic and uses AuthProvider context
 function AppContent() {
   const [currentView, setCurrentView] = useState('products');
   const [cartItems, setCartItems] = useState([]);
@@ -115,12 +115,15 @@ function AppContent() {
   );
 }
 
-// Main App Component
+// Main App component - This wraps everything with AuthProvider
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <AppContent />
+        <Routes>
+          <Route path="*" element={<AppContent />} />
+          <Route path="/track-order" element={<OrderTracking />} />
+        </Routes>
       </Router>
     </AuthProvider>
   );
