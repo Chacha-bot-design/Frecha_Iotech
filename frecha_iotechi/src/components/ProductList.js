@@ -1,6 +1,7 @@
 // src/components/ProductList.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import apiConfig from '../config/api';
 import './ProductList.css';
 
 const ProductList = ({ onAddToCart }) => {
@@ -10,9 +11,7 @@ const ProductList = ({ onAddToCart }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [apiStatus, setApiStatus] = useState('checking');
 
-  // Use your actual Django API endpoints
-  const API_BASE = 'https://frecha-iotech.onrender.com/api'; // For development
-  // const API_BASE = 'https://your-django-domain.com/api'; // For production
+  const { baseURL, endpoints } = apiConfig;
 
   useEffect(() => {
     fetchProducts();
@@ -24,111 +23,77 @@ const ProductList = ({ onAddToCart }) => {
     setApiStatus('fetching');
     
     try {
-      // Use your actual Django API endpoints from urls.py
+      console.log('Fetching from:', baseURL);
+      
+      // Use the correct endpoints from config
       const [electronicsRes, routersRes, dataPlansRes, bundlesRes] = await Promise.allSettled([
-        axios.get(`${API_BASE}/public-electronics/`), // Matches your URL pattern
-        axios.get(`${API_BASE}/public-routers/`),     // Matches your URL pattern
-        axios.get(`${API_BASE}/public-data-plans/`),  // Matches your URL pattern
-        axios.get(`${API_BASE}/public-bundles/`)      // Matches your URL pattern
+        axios.get(`${baseURL}${endpoints.electronics}`),
+        axios.get(`${baseURL}${endpoints.routers}`),
+        axios.get(`${baseURL}${endpoints.dataPlans}`),
+        axios.get(`${baseURL}${endpoints.bundles}`)
       ]);
 
-      console.log('API Responses:', { electronicsRes, routersRes, dataPlansRes, bundlesRes });
+      console.log('API Responses:', { 
+        electronics: electronicsRes,
+        routers: routersRes,
+        dataPlans: dataPlansRes,
+        bundles: bundlesRes
+      });
 
       const allProducts = [];
 
-      // Process electronics
-      if (electronicsRes.status === 'fulfilled' && electronicsRes.value.data) {
-        const electronicsData = Array.isArray(electronicsRes.value.data) ? electronicsRes.value.data : [];
-        allProducts.push(...electronicsData.map(item => ({
-          id: item.id || item.pk,
-          name: item.name,
-          category: 'electronics',
-          description: item.description,
-          price: parseFloat(item.price) || 0,
-          image: item.image,
-          specifications: item.specifications,
-          type: 'electronics',
-          features: ['Electronics Device', 'Premium Quality']
-        })));
-      }
+      // Process each response with better error handling
+      const processResponse = (response, category, type, featureBase = []) => {
+        if (response.status === 'fulfilled' && response.value && response.value.data) {
+          const data = Array.isArray(response.value.data) ? response.value.data : [];
+          return data.map(item => ({
+            id: item.id || item.pk || Math.random(),
+            name: item.name || 'Unnamed Product',
+            category: category,
+            description: item.description || `Premium ${category} from Frecha Iotech`,
+            price: parseFloat(item.price) || 0,
+            image: item.image || null,
+            specifications: item.specifications,
+            type: type,
+            features: item.features || featureBase
+          }));
+        }
+        return [];
+      };
 
-      // Process routers
-      if (routersRes.status === 'fulfilled' && routersRes.value.data) {
-        const routersData = Array.isArray(routersRes.value.data) ? routersRes.value.data : [];
-        allProducts.push(...routersData.map(item => ({
-          id: item.id || item.pk,
-          name: item.name,
-          category: 'routers',
-          description: item.description,
-          price: parseFloat(item.price) || 0,
-          image: item.image,
-          specifications: item.specifications,
-          type: 'router',
-          features: ['Networking', 'High Speed']
-        })));
-      }
+      allProducts.push(
+        ...processResponse(electronicsRes, 'electronics', 'electronics', ['Electronics Device']),
+        ...processResponse(routersRes, 'routers', 'router', ['Networking Equipment']),
+        ...processResponse(dataPlansRes, 'data-plans', 'data-plan', ['Data Plan']),
+        ...processResponse(bundlesRes, 'bundles', 'bundle', ['Bundle Package'])
+      );
 
-      // Process data plans
-      if (dataPlansRes.status === 'fulfilled' && dataPlansRes.value.data) {
-        const dataPlansData = Array.isArray(dataPlansRes.value.data) ? dataPlansRes.value.data : [];
-        allProducts.push(...dataPlansData.map(item => ({
-          id: item.id || item.pk,
-          name: item.name,
-          category: 'data-plans',
-          description: item.description || `${item.data_volume} - ${item.provider_name || 'Provider'}`,
-          price: parseFloat(item.price) || 0,
-          image: null,
-          features: [
-            item.data_volume,
-            `${item.validity_days} days`,
-            item.network_type,
-            item.data_type
-          ].filter(Boolean),
-          type: 'data-plan'
-        })));
-      }
-
-      // Process bundles
-      if (bundlesRes.status === 'fulfilled' && bundlesRes.value.data) {
-        const bundlesData = Array.isArray(bundlesRes.value.data) ? bundlesRes.value.data : [];
-        allProducts.push(...bundlesData.map(item => ({
-          id: item.id || item.pk,
-          name: item.name,
-          category: 'bundles',
-          description: item.description,
-          price: parseFloat(item.actual_price || item.total_price) || 0,
-          image: null,
-          features: item.features || [],
-          type: 'bundle'
-        })));
-      }
-
-      // Filter out items with price 0 and check if we got any products
+      // Filter out items with price 0
       const validProducts = allProducts.filter(item => item.price > 0);
       
       if (validProducts.length > 0) {
         setProducts(validProducts);
         setApiStatus('success');
         setError(null);
-        console.log(`Loaded ${validProducts.length} products from Django API`);
+        console.log(`✅ Loaded ${validProducts.length} products from Django API`);
       } else {
-        // If no products from API, use sample data
         setApiStatus('no-data');
         setError('No products found in database. Using sample data.');
         setProducts(getSampleProducts());
+        console.log('⚠️ No products from API, using sample data');
       }
 
     } catch (err) {
-      console.error('Error fetching products:', err);
+      console.error('❌ API Error:', err);
       setApiStatus('error');
-      setError(`API Error: ${err.message}. Using sample data.`);
+      setError(`Cannot connect to server: ${err.message}. Using sample data.`);
       setProducts(getSampleProducts());
     } finally {
       setLoading(false);
     }
   };
 
-  // Enhanced sample data that matches your Django models
+  // Enhanced sample data
   const getSampleProducts = () => [
     {
       id: 1,
@@ -138,7 +103,7 @@ const ProductList = ({ onAddToCart }) => {
       price: 299.99,
       image: null,
       type: "router",
-      features: ["Gigabit speeds", "Dual-band WiFi", "4 Ethernet ports"]
+      features: ["Gigabit speeds", "Dual-band WiFi", "4 Ethernet ports", "Advanced security"]
     },
     {
       id: 2,
@@ -148,47 +113,67 @@ const ProductList = ({ onAddToCart }) => {
       price: 25000,
       image: null,
       type: "data-plan",
-      features: ["10GB Data", "30 days validity", "4G LTE", "Night bundle"]
+      features: ["10GB High-speed", "30 days validity", "4G LTE", "Night bundle included"]
     },
     {
       id: 3,
       name: "Business Internet Bundle",
       category: "bundles",
-      description: "Complete business solution with high-speed internet and support",
+      description: "Complete business solution with high-speed internet and priority support",
       price: 150000,
       image: null,
       type: "bundle",
-      features: ["Unlimited data", "Priority support", "Static IP", "Business router"]
+      features: ["Unlimited data", "Priority support", "Static IP", "Business router", "99.9% uptime"]
     },
     {
       id: 4,
       name: "Wireless Access Point",
       category: "electronics",
-      description: "Enterprise-grade wireless access point for extended coverage",
+      description: "Enterprise-grade wireless access point for extended coverage in large areas",
       price: 199.99,
       image: null,
       type: "electronics",
-      features: ["300m range", "PoE support", "Multiple SSIDs"]
+      features: ["300m range", "PoE support", "Multiple SSIDs", "Mesh capable"]
     },
     {
       id: 5,
       name: "Weekly Social Media Bundle",
       category: "data-plans",
-      description: "7-day social media bundle for WhatsApp, Instagram, and Facebook",
+      description: "7-day social media bundle for WhatsApp, Instagram, Facebook and Twitter",
       price: 5000,
       image: null,
       type: "data-plan",
-      features: ["Social media only", "7 days", "Unlimited apps"]
+      features: ["Social media apps", "7 days validity", "Unlimited usage", "Fast speeds"]
     },
     {
       id: 6,
       name: "Network Switch 8-Port",
       category: "electronics",
-      description: "8-port gigabit network switch for small office networks",
+      description: "8-port gigabit network switch for small office and home networks",
       price: 89.99,
       image: null,
       type: "electronics",
-      features: ["8 Gigabit ports", "Plug & play", "Compact design"]
+      features: ["8 Gigabit ports", "Plug & play", "Compact design", "Energy efficient"]
+    },
+    {
+      id: 7,
+      name: "YouTube Streaming Bundle",
+      category: "data-plans",
+      description: "Special bundle optimized for YouTube streaming and video content",
+      price: 15000,
+      image: null,
+      type: "data-plan",
+      features: ["YouTube optimized", "30 days", "HD streaming", "No buffering"]
+    },
+    {
+      id: 8,
+      name: "5G WiFi Router",
+      category: "routers",
+      description: "Next-generation 5G WiFi router for ultra-fast internet speeds",
+      price: 450.00,
+      image: null,
+      type: "router",
+      features: ["5G ready", "WiFi 6", "Multi-user", "Smart connectivity"]
     }
   ];
 
@@ -229,18 +214,23 @@ const ProductList = ({ onAddToCart }) => {
 
   const getApiStatusMessage = () => {
     switch (apiStatus) {
-      case 'success': return `Connected to Frecha Iotech API (${products.length} products loaded)`;
-      case 'no-data': return 'No products in database. Showing sample data.';
-      case 'error': return error;
-      case 'fetching': return 'Connecting to Frecha Iotech API...';
-      default: return 'Checking API connection...';
+      case 'success': 
+        return `Connected to Frecha Iotech (${products.length} products)`;
+      case 'no-data': 
+        return 'Database is empty. Showing demo products.';
+      case 'error': 
+        return `Server connection issue: ${error}`;
+      case 'fetching': 
+        return 'Connecting to Frecha Iotech server...';
+      default: 
+        return 'Initializing...';
     }
   };
 
   const getApiStatusIcon = () => {
     switch (apiStatus) {
       case 'success': return 'bi-check-circle-fill';
-      case 'no-data': return 'bi-info-circle-fill';
+      case 'no-data': return 'bi-database-exclamation';
       case 'error': return 'bi-exclamation-triangle-fill';
       case 'fetching': return 'bi-arrow-repeat spin';
       default: return 'bi-hourglass-split';
@@ -263,8 +253,13 @@ const ProductList = ({ onAddToCart }) => {
         <div className="container">
           <div className="products-loading">
             <i className="bi bi-arrow-repeat spin" style={{ fontSize: '3rem', marginBottom: '1rem' }}></i>
-            <h3>Loading Products...</h3>
+            <h3>Loading Frecha Iotech Products</h3>
             <p>{getApiStatusMessage()}</p>
+            <div className="loading-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
           </div>
         </div>
       </section>
@@ -275,26 +270,27 @@ const ProductList = ({ onAddToCart }) => {
     <section className="products-section">
       <div className="container">
         <div className="products-header">
-          <h1>Our Products & Services</h1>
+          <h1>Frecha Iotech Products & Services</h1>
           <p>Premium telecom equipment, data plans, and networking solutions across Tanzania</p>
         </div>
 
         {/* API Status Alert */}
-        {apiStatus && (
-          <div className={`api-alert ${getApiStatusColor()}`}>
-            <i className={`bi ${getApiStatusIcon()}`}></i>
-            <span>{getApiStatusMessage()}</span>
-            {(apiStatus === 'error' || apiStatus === 'no-data') && (
-              <button 
-                onClick={fetchProducts}
-                className="retry-btn"
-              >
-                <i className="bi bi-arrow-clockwise"></i>
-                Retry
-              </button>
-            )}
+        <div className={`api-alert ${getApiStatusColor()}`}>
+          <i className={`bi ${getApiStatusIcon()}`}></i>
+          <div className="alert-content">
+            <strong>{getApiStatusMessage()}</strong>
+            <small>Server: {baseURL}</small>
           </div>
-        )}
+          {(apiStatus === 'error' || apiStatus === 'no-data') && (
+            <button 
+              onClick={fetchProducts}
+              className="retry-btn"
+            >
+              <i className="bi bi-arrow-clockwise"></i>
+              Retry Connection
+            </button>
+          )}
+        </div>
 
         {/* Category Filter */}
         <div className="category-filter">
@@ -306,6 +302,11 @@ const ProductList = ({ onAddToCart }) => {
             >
               <i className={`bi ${getCategoryIcon(category.id)}`}></i>
               {category.name}
+              <span className="category-count">
+                ({selectedCategory === 'all' || selectedCategory === category.id 
+                  ? products.filter(p => p.category === category.id).length 
+                  : 0})
+              </span>
             </button>
           ))}
         </div>
@@ -314,34 +315,40 @@ const ProductList = ({ onAddToCart }) => {
         <div className="products-grid">
           {filteredProducts.length === 0 ? (
             <div className="products-empty">
-              <i className="bi bi-inbox" style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--gray-400)' }}></i>
-              <h3>No Products Found</h3>
-              <p>No products available in this category.</p>
+              <i className="bi bi-search" style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--gray-400)' }}></i>
+              <h3>No Products in This Category</h3>
+              <p>Try selecting a different category or check back later for new products.</p>
               <button 
                 onClick={() => setSelectedCategory('all')}
-                className="btn btn-outline"
+                className="btn btn-primary"
               >
+                <i className="bi bi-grid"></i>
                 View All Products
               </button>
             </div>
           ) : (
             filteredProducts.map(product => (
               <div key={`${product.type}-${product.id}`} className="product-card">
-                {product.image ? (
-                  <img 
-                    src={product.image} 
-                    alt={product.name}
-                    className="product-image"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : (
-                  <div className="product-image-placeholder">
+                <div className="product-image-container">
+                  {product.image ? (
+                    <img 
+                      src={product.image} 
+                      alt={product.name}
+                      className="product-image"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        const placeholder = e.target.nextSibling;
+                        if (placeholder) placeholder.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className={`product-image-placeholder ${product.image ? 'hidden' : ''}`}>
                     <i className={`bi ${getCategoryIcon(product.category)}`}></i>
                   </div>
-                )}
+                  <div className="product-badge">
+                    {product.type.replace('-', ' ')}
+                  </div>
+                </div>
                 
                 <div className="product-info">
                   <span className="product-category">
@@ -355,12 +362,20 @@ const ProductList = ({ onAddToCart }) => {
                   {product.features && product.features.length > 0 && (
                     <div className="product-features">
                       {product.features.slice(0, 3).map((feature, index) => (
-                        <span key={index} className="feature-tag">{feature}</span>
+                        <span key={index} className="feature-tag">
+                          <i className="bi bi-check"></i>
+                          {feature}
+                        </span>
                       ))}
                     </div>
                   )}
                   
-                  <div className="product-price">TZS {product.price.toLocaleString()}</div>
+                  <div className="product-price">
+                    <span className="price-amount">TZS {product.price.toLocaleString()}</span>
+                    {product.type === 'data-plan' && (
+                      <span className="price-note">One-time purchase</span>
+                    )}
+                  </div>
                   
                   <div className="product-actions">
                     <button 
@@ -380,25 +395,6 @@ const ProductList = ({ onAddToCart }) => {
             ))
           )}
         </div>
-
-        {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="debug-info">
-            <details>
-              <summary>API Debug Info</summary>
-              <pre>
-                API Base: {API_BASE}
-                Status: {apiStatus}
-                Products: {products.length}
-                Endpoints Used:
-                - {API_BASE}/public-electronics/
-                - {API_BASE}/public-routers/
-                - {API_BASE}/public-data-plans/
-                - {API_BASE}/public-bundles/
-              </pre>
-            </details>
-          </div>
-        )}
       </div>
     </section>
   );

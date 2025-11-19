@@ -265,3 +265,109 @@
     font-size: var(--text-sm);
   }
 }
+/* Loading Dots */
+.loading-dots {
+  display: flex;
+  gap: 4px;
+  margin-top: 1rem;
+}
+
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary-500);
+  animation: bounce 1.4s infinite ease-in-out;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Alert Content */
+.alert-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alert-content small {
+  opacity: 0.8;
+  font-weight: normal;
+}
+
+/* Category Count */
+.category-count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  margin-left: 4px;
+}
+
+.category-btn:not(.active) .category-count {
+  background: var(--gray-200);
+  color: var(--gray-600);
+}
+
+/* Product Image Container */
+.product-image-container {
+  position: relative;
+}
+
+.product-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--primary-600);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Feature Tags with Icons */
+.feature-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--primary-50);
+  color: var(--primary-700);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.feature-tag i {
+  font-size: 0.7rem;
+}
+
+/* Price Styles */
+.price-amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-600);
+}
+
+.price-note {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  display: block;
+  margin-top: 2px;
+}
